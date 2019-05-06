@@ -289,7 +289,7 @@ def update_mod():
         else:
             raise Exception
     except Exception:
-        printdbg("Better do not self update")
+        printdbg("Better not to do self update")
 
     if not os.path.isdir(args.moddir):
         printdbg("Creating directory {}".format(args.moddir))
