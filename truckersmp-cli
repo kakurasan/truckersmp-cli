@@ -5,11 +5,11 @@ import distutils.spawn
 import hashlib
 import http.client
 import io
-import json
+from json import JSONDecoder
 import locale
 import os
 import signal
-import subprocess
+import subprocess as subproc
 import sys
 import tarfile
 import time
@@ -21,8 +21,9 @@ class URL:
     dlurl = "download.ets2mp.com"
     dlurlalt = "downloads.ets2mp.com"
     listurl = "https://update.ets2mp.com/files.json"
-    steamcmdurl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
     issueurl = "https://github.com/lhark/truckersmp-cli/issues"
+    steamcmdurl = "\
+https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
 
 
 class AppId:
@@ -88,7 +89,8 @@ def download_files(host, files_to_download):
             name = os.path.basename(path)
             destdir = os.path.dirname(dest)
             printdbg(
-              "Downloading file https://{}{} to {}".format(host, path, destdir))
+              "Downloading file https://{}{} to {}".format(
+               host, path, destdir))
 
             # make file hierarchy
             os.makedirs(destdir, exist_ok=True)
@@ -114,7 +116,8 @@ def download_files(host, files_to_download):
                     f.write(buf)
                     md5hash.update(buf)
                     if content_len:
-                        progress = "{:,} / {:,}".format(downloaded, int(content_len))
+                        progress = "{:,} / {:,}".format(
+                          downloaded, int(content_len))
                     else:
                         progress = "{:,}".format(downloaded)
                     print("\r{:40}{:>40}".format(name, progress), end="")
@@ -127,7 +130,8 @@ def download_files(host, files_to_download):
             # wget-like timestamping for downloaded files
             if lastmod:
                 timestamp = time.mktime(
-                  time.strptime(lastmod, "%a, %d %b %Y %H:%M:%S GMT")) - time.timezone
+                  time.strptime(
+                   lastmod, "%a, %d %b %Y %H:%M:%S GMT")) - time.timezone
                 try:
                     os.utime(dest, (timestamp, timestamp))
                 except Exception:
@@ -170,12 +174,12 @@ def start_with_proton():
     # We can detect the timestamp update with inotifywait -e modify.
     # Needs inotify-tools installed
     try:
-        subprocess.check_call(["pidof", "steam"], stdout=subprocess.DEVNULL)
+        subproc.check_call(["pidof", "steam"], stdout=subproc.DEVNULL)
     except Exception:
         printdbg("Starting Steam…")
-        subprocess.Popen(
+        subproc.Popen(
           ["nohup", "steam"],
-          stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+          stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
 
         # wait for user login
         try:
@@ -186,16 +190,18 @@ def start_with_proton():
             printdbg("Waiting for Steam using inotifywait.")
             loginusers_vdf = os.path.join(steamdir, "config/loginusers.vdf")
             if os.path.isfile(loginusers_vdf):
-                subprocess.call(
+                subproc.call(
                   ["inotifywait", "-e", "modify", "-qq", loginusers_vdf])
-                printdbg("Steam should now be up and running and the user logged in.")
+                printdbg(
+                  "Steam should now be up and running and the user logged in.")
             else:
                 printerr("{} is not present,".format(loginusers_vdf), end=" ")
                 raise Exception
         except Exception:
             # fallback to 30 seconds if inotify-tools is not installed
             # or config/loginusers.vdf is not present
-            # Maybe enhance this with manual timestamp comparison in the future.
+            # Maybe enhance this with manual timestamp comparison
+            # in the future.
             printerr("waiting 30 seconds for steam to start up.")
             time.sleep(30)
             printdbg("Steam should be up now")
@@ -225,7 +231,7 @@ def start_with_proton():
       env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       sys.executable, proton, tmpcliexe, args.gamedir, args.moddir))
-    subprocess.call(
+    subproc.call(
       [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir])
 
 
@@ -252,24 +258,25 @@ def start_with_wine():
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
-  wine {} {} {}""".format(env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
-    subprocess.call(["wine", tmpcliexe, args.gamedir, args.moddir])
+  wine {} {} {}""".format(
+      env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
+    subproc.call(["wine", tmpcliexe, args.gamedir, args.moddir])
 
 
 # download missing or outdated files
 def update_mod():
     # update the script itself when origin/master is checked out
     try:
-        out = subprocess.check_output(
+        out = subproc.check_output(
           ["git", "-C", Dir.scriptdir,
            "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         if out == "origin/master":
             printdbg(
               "This script is checked out with git, upstream is origin/master")
             printdbg("Running git pull")
-            subprocess.check_call(
+            subproc.check_call(
               ["git", "-C", Dir.scriptdir, "pull"],
-              stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+              stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
         else:
             raise Exception
     except Exception:
@@ -289,7 +296,7 @@ def update_mod():
     # extract md5sums and filenames
     modfiles = []
     try:
-        for item in json.JSONDecoder().decode(files_json.decode("ascii"))["Files"]:
+        for item in JSONDecoder().decode(str(files_json, "ascii"))["Files"]:
             modfiles.append((item["Md5"], item["FilePath"]))
         if len(modfiles) == 0:
             raise Exception("File list is empty")
@@ -297,13 +304,14 @@ def update_mod():
         sys.exit("""Failed to parse files.json: {}
 Please report an issue: {}""".format(e, URL.issueurl))
 
-    # compare existing local files with md5sums and remember missing/wrong files
-    files_to_download = []
+    # compare existing local files with md5sums
+    # and remember missing/wrong files
+    dlfiles = []
     for md5, jsonfilepath in modfiles:
         md5hash = hashlib.md5()
         modfilepath = os.path.join(args.moddir, jsonfilepath[1:])
         if not os.path.isfile(modfilepath):
-            files_to_download.append(("/files" + jsonfilepath, modfilepath, md5))
+            dlfiles.append(("/files" + jsonfilepath, modfilepath, md5))
         else:
             try:
                 with open(modfilepath, "rb") as f:
@@ -313,19 +321,19 @@ Please report an issue: {}""".format(e, URL.issueurl))
                             break
                         md5hash.update(buf)
                 if md5hash.hexdigest() != md5:
-                    files_to_download.append(("/files" + jsonfilepath, modfilepath, md5))
+                    dlfiles.append(("/files" + jsonfilepath, modfilepath, md5))
             except Exception as e:
                 sys.exit("Failed to read {}: {}".format(modfilepath, e))
-    if len(files_to_download) > 0:
+    if len(dlfiles) > 0:
         printdbg("Files to download:")
-        for path, _, _ in files_to_download:
+        for path, _, _ in dlfiles:
             printdbg("  {}".format(path))
     else:
         printdbg("No files to download")
 
     # download missing/wrong files
-    if not download_files(URL.dlurl, files_to_download):
-        if not download_files(URL.dlurlalt, files_to_download):
+    if not download_files(URL.dlurl, dlfiles):
+        if not download_files(URL.dlurlalt, dlfiles):
             # something went wrong
             sys.exit("Failed to download mod files.")
 
@@ -336,12 +344,12 @@ def update_game():
     # all connectivity and asks for password and steam guard code after restart
     while True:
         try:
-            subprocess.check_call(["pidof", "steam"], stdout=subprocess.DEVNULL)
+            subproc.check_call(["pidof", "steam"], stdout=subproc.DEVNULL)
         except Exception:
             break
         else:
             printdbg("Found running steam, running pkill -x steam")
-            subprocess.call(["pkill", "-x", "steam"])
+            subproc.call(["pkill", "-x", "steam"])
             time.sleep(5)
 
     if not os.path.isdir(args.gamedir):
@@ -383,7 +391,7 @@ def update_game():
     +force_install_dir {}
     +app_update {} validate
     +quit""".format(steamcmd, args.account, args.protondir, args.proton_appid))
-        subprocess.call(
+        subproc.call(
           [steamcmd,
            "+login", args.account,
            "+force_install_dir", args.protondir,
@@ -399,7 +407,7 @@ def update_game():
     +force_install_dir {}
     +app_update {} validate
     +quit""".format(steamcmd, args.account, args.gamedir, args.steamid))
-    subprocess.call(
+    subproc.call(
       [steamcmd,
        "+@sSteamCmdForcePlatformType", "windows",
        "+login", args.account,
@@ -453,7 +461,8 @@ make sure it uses the same folder as proton""")
 Need to download (-u) the game?""".format(args.gamedir))
 
         # check for proton
-        if not os.path.isfile(os.path.join(args.protondir, "proton")) and args.proton:
+        if (not os.path.isfile(os.path.join(args.protondir, "proton"))
+           and args.proton):
             sys.exit("""Proton and no update wanted but Proton not found in {}
 Need to download (-u) Proton?""".format(args.protondir))
 
@@ -482,7 +491,8 @@ It needs a working Steam installation in $XDG_DATA_HOME/Steam for starting
 through Proton or to update the game files. It will
 stop all running Steam processes while updating to prevent Steam asking
 for password and guard code at the next startup.
-When using standard Wine you should start the windows version of Steam first."""
+When using standard Wine you should start the windows version of Steam first.
+"""
     epilog = "Proton AppId list:\n"
     for k, v in AppId.proton.items():
         default_mark = " (Default)" if k == AppId.default_proton_ver else ""
