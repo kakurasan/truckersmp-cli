@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import distutils.spawn
 import errno
 from gettext import ngettext
 import hashlib
@@ -10,6 +9,7 @@ import io
 from json import JSONDecoder
 import locale
 import os
+import shutil
 import signal
 import subprocess as subproc
 import sys
@@ -185,7 +185,7 @@ def start_with_proton():
 
         # wait for user login
         try:
-            if not distutils.spawn.find_executable("inotifywait"):
+            if not shutil.which("inotifywait"):
                 printerr("Inotify-tools not installed.")
                 raise Exception
 
@@ -373,7 +373,7 @@ def update_game():
         os.makedirs(args.gamedir, exist_ok=True)
 
     # fetch steamcmd if not in $PATH
-    steamcmd = distutils.spawn.find_executable("steamcmd")
+    steamcmd = shutil.which("steamcmd")
     if not steamcmd:
         printdbg("steamcmd not found in $PATH")
         steamcmd = os.path.join(Dir.steamcmddir, "steamcmd.sh")
