@@ -43,21 +43,21 @@ class AppId:
 
 class Dir:
     """ directories """
-    XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME",
-      os.path.join(os.path.expanduser("~"), ".cache"))
-    XDG_DATA_HOME = os.getenv("XDG_DATA_HOME",
-      os.path.join(os.path.expanduser("~"), ".local/share"))
+    XDG_CACHE_HOME = os.getenv(
+      "XDG_CACHE_HOME", os.path.join(os.path.expanduser("~"), ".cache"))
+    XDG_DATA_HOME = os.getenv(
+      "XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local/share"))
     default_gamedir = {
-        "ats": os.path.join(XDG_DATA_HOME,
-          "truckersmp-cli/American Truck Simulator/data"),
-        "ets2": os.path.join(XDG_DATA_HOME,
-          "truckersmp-cli/Euro Truck Simulator 2/data"),
+        "ats": os.path.join(
+          XDG_DATA_HOME, "truckersmp-cli/American Truck Simulator/data"),
+        "ets2": os.path.join(
+          XDG_DATA_HOME, "truckersmp-cli/Euro Truck Simulator 2/data"),
     }
     default_prefixdir = {
-        "ats": os.path.join(XDG_DATA_HOME,
-          "truckersmp-cli/American Truck Simulator/prefix"),
-        "ets2": os.path.join(XDG_DATA_HOME,
-          "truckersmp-cli/Euro Truck Simulator 2/prefix"),
+        "ats": os.path.join(
+          XDG_DATA_HOME, "truckersmp-cli/American Truck Simulator/prefix"),
+        "ets2": os.path.join(
+          XDG_DATA_HOME, "truckersmp-cli/Euro Truck Simulator 2/prefix"),
     }
     default_moddir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/TruckersMP")
     default_protondir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/Proton")
@@ -173,7 +173,8 @@ def start_with_proton():
         subprocess.check_call(["pidof", "steam"], stdout = subprocess.DEVNULL)
     except:
         printdbg("Starting Steam…")
-        subprocess.Popen(["nohup", "steam"],
+        subprocess.Popen(
+          ["nohup", "steam"],
           stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
 
         # wait for user login
@@ -220,7 +221,8 @@ def start_with_proton():
   STEAM_COMPAT_CLIENT_INSTALL_PATH={}
   {} {}
   run
-  {} {} {}""".format(env["SteamGameId"], env["SteamAppId"],
+  {} {} {}""".format(
+      env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       sys.executable, proton, tmpcliexe, args.gamedir, args.moddir))
     subprocess.call(
@@ -258,13 +260,15 @@ def start_with_wine():
 def update_mod():
     # update the script itself when origin/master is checked out
     try:
-        out = subprocess.check_output(["git", "-C", Dir.scriptdir,
-          "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
+        out = subprocess.check_output(
+          ["git", "-C", Dir.scriptdir,
+           "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         if out == "origin/master":
             printdbg(
               "This script is checked out with git, upstream is origin/master")
             printdbg("Running git pull")
-            subprocess.check_call(["git", "-C", Dir.scriptdir, "pull"],
+            subprocess.check_call(
+              ["git", "-C", Dir.scriptdir, "pull"],
               stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
         else:
             raise Exception
@@ -379,11 +383,12 @@ def update_game():
     +force_install_dir {}
     +app_update {} validate
     +quit""".format(steamcmd, args.account, args.protondir, args.proton_appid))
-        subprocess.call([steamcmd,
-          "+login", args.account,
-          "+force_install_dir", args.protondir,
-          "+app_update", str(args.proton_appid), "validate",
-          "+quit"])
+        subprocess.call(
+          [steamcmd,
+           "+login", args.account,
+           "+force_install_dir", args.protondir,
+           "+app_update", str(args.proton_appid), "validate",
+           "+quit"])
 
     # use steamcmd to update the chosen game
     printdbg("Updating Game (AppId:{})".format(args.steamid))
@@ -394,12 +399,13 @@ def update_game():
     +force_install_dir {}
     +app_update {} validate
     +quit""".format(steamcmd, args.account, args.gamedir, args.steamid))
-    subprocess.call([steamcmd,
-      "+@sSteamCmdForcePlatformType", "windows",
-      "+login", args.account,
-      "+force_install_dir", args.gamedir,
-      "+app_update", args.steamid, "validate",
-      "+quit"])
+    subprocess.call(
+      [steamcmd,
+       "+@sSteamCmdForcePlatformType", "windows",
+       "+login", args.account,
+       "+force_install_dir", args.gamedir,
+       "+app_update", args.steamid, "validate",
+       "+quit"])
 
 
 def check_error():
@@ -431,7 +437,7 @@ def check_error():
         # make sure proton and wine are using the same default
         if args.wine:
             if (args.prefixdir == Dir.default_prefixdir["ats"]
-            or args.prefixdir == Dir.default_prefixdir["ets2"]):
+               or args.prefixdir == Dir.default_prefixdir["ets2"]):
                 printdbg("""prefixdir is the default while using wine,
 make sure it uses the same folder as proton""")
                 args.prefixdir = os.path.join(args.prefixdir, "pfx")
@@ -439,8 +445,10 @@ make sure it uses the same folder as proton""")
     # checks for starting while not updating
     if args.start and not args.update:
         # check for game
-        if (not os.path.isfile(os.path.join(args.gamedir, "bin/win_x64/eurotrucks2.exe"))
-        and not os.path.isfile(os.path.join(args.gamedir, "bin/win_x64/amtrucks.exe"))):
+        if (not os.path.isfile(
+              os.path.join(args.gamedir, "bin/win_x64/eurotrucks2.exe"))
+            and not os.path.isfile(
+              os.path.join(args.gamedir, "bin/win_x64/amtrucks.exe"))):
             sys.exit("""Game not found in {}
 Need to download (-u) the game?""".format(args.gamedir))
 
@@ -481,43 +489,57 @@ When using standard Wine you should start the windows version of Steam first."""
         epilog += "    Proton {:13}: {:>10}{}\n".format(k, v, default_mark)
     epilog += """See https://github.com/ValveSoftware/Proton/issues/162
 if you want to use a lower version than 3.16 Beta."""
-    ap = argparse.ArgumentParser(description = desc, epilog = epilog,
+    ap = argparse.ArgumentParser(
+      description = desc, epilog = epilog,
       formatter_class = argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("-a", "--ats",
+    ap.add_argument(
+      "-a", "--ats",
       help = "use American Truck Simulator", action = "store_true")
-    ap.add_argument("-e", "--ets2",
+    ap.add_argument(
+      "-e", "--ets2",
       help = "use Euro Truck Simulator 2", action = "store_true")
-    ap.add_argument("-p", "--proton",
+    ap.add_argument(
+      "-p", "--proton",
       help = "start the game with Proton", action = "store_true")
-    ap.add_argument("-w", "--wine",
+    ap.add_argument(
+      "-w", "--wine",
       help = "start the game with Wine", action = "store_true")
-    ap.add_argument("-s", "--start",
+    ap.add_argument(
+      "-s", "--start",
       help = "start the game", action = "store_true")
-    ap.add_argument("-u", "--update",
+    ap.add_argument(
+      "-u", "--update",
       help = "update the game", action = "store_true")
-    ap.add_argument("-v", "--verbose",
+    ap.add_argument(
+      "-v", "--verbose",
       help = "verbose", action = "store_true")
-    ap.add_argument("-g", "--gamedir", metavar = "DIR", type = str,
+    ap.add_argument(
+      "-g", "--gamedir", metavar = "DIR", type = str,
       help = """choose a different directory for the game files
                 [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/data]""")
-    ap.add_argument("-i", "--proton-appid", metavar = "APPID", type = int,
+    ap.add_argument(
+      "-i", "--proton-appid", metavar = "APPID", type = int,
       default = AppId.proton[AppId.default_proton_ver],
       help = "choose a different AppId for Proton (Needs an update for changes)")
-    ap.add_argument("-m", "--moddir", metavar = "DIR", type = str,
+    ap.add_argument(
+      "-m", "--moddir", metavar = "DIR", type = str,
       help = """choose a different directory for the mod files
                 [Default: $XDG_DATA_HOME/truckersmp-cli/TruckersMP,
                 Fallback: ./truckersmp]""")
-    ap.add_argument("-n", "--account", metavar = "NAME", type = str,
+    ap.add_argument(
+      "-n", "--account", metavar = "NAME", type = str,
       help = """steam account name to use
                 (This account should own the game and ideally is logged in
                 with saved credentials)""")
-    ap.add_argument("-o", "--protondir", metavar = "DIR", type = str,
+    ap.add_argument(
+      "-o", "--protondir", metavar = "DIR", type = str,
       default = Dir.default_protondir,
       help = """choose a different Proton directory
                 [Default: $XDG_DATA_HOME/truckersmp-cli/Proton]
                 While updating any previous version in this folder gets changed
                 to the given (-i) or default Proton version""")
-    ap.add_argument("-x", "--prefixdir", metavar = "DIR", type = str,
+    ap.add_argument(
+      "-x", "--prefixdir", metavar = "DIR", type = str,
       help = """choose a different directory for the prefix
                 [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix]""")
 
