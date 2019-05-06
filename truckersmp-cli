@@ -437,7 +437,7 @@ def update_game():
        "+quit"])
 
 
-def check_error():
+def check_args_errors():
     # checks for updating and/or starting
     if not args.update and not args.start:
         sys.exit("What to do? Starting (-s) or updating (-u) the game?")
@@ -596,7 +596,7 @@ if __name__ == "__main__":
     printdbg("Mod directory: {}".format(args.moddir))
 
     # check for errors
-    check_error()
+    check_args_errors()
 
     # download/update ATS/ETS2 and Proton
     if args.update:
