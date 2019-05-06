@@ -155,19 +155,8 @@ def download_files(host, files_to_download):
 
 
 def start_with_proton():
-    steamdir = None
-    # "steam" command in Debian package uses ~/.steam as steam user directory
-    # instead of $XDG_DATA_HOME/Steam
-    try:
-        with open("/usr/games/steam") as f:
-            for l in f:
-                if l.rstrip() == "config=$HOME/.steam":
-                    steamdir = os.path.join(os.path.expanduser("~"), ".steam")
-                    break
-    except Exception:
-        pass
-    if not steamdir:
-        steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
+    steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
+    printdbg("Steam user directory: {}".format(steamdir))
 
     # make sure steam is started
     # It's probably safe to assume steam is up and running completely started
