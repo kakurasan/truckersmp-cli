@@ -220,14 +220,11 @@ def start_with_proton():
         printdbg("Creating directory {}".format(args.prefixdir))
         os.makedirs(args.prefixdir, exist_ok=True)
 
-    env = {
-        "SteamGameId": args.steamid,
-        "SteamAppId": args.steamid,
-        "STEAM_COMPAT_DATA_PATH": args.prefixdir,
-        "STEAM_COMPAT_CLIENT_INSTALL_PATH": steamdir,
-    }
-    for key, value in env.items():
-        os.environ[key] = value
+    env = os.environ.copy()
+    env["SteamGameId"] = args.steamid
+    env["SteamAppId"] = args.steamid
+    env["STEAM_COMPAT_DATA_PATH"] = args.prefixdir
+    env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steamdir
     proton = os.path.join(args.protondir, "proton")
     tmpcliexe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
     printdbg("""Startup command:
@@ -242,7 +239,8 @@ def start_with_proton():
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       sys.executable, proton, tmpcliexe, args.gamedir, args.moddir))
     subproc.call(
-      [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir])
+      [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir],
+      env=env)
 
 
 def start_with_wine():
@@ -256,13 +254,10 @@ def start_with_wine():
     Press enter if you are good to go: """, end="")
     sys.stdin.readline()
 
-    env = {
-        "WINEDEBUG": "-all",
-        "WINEARCH": "win64",
-        "WINEPREFIX": args.prefixdir,
-    }
-    for key, value in env.items():
-        os.environ[key] = value
+    env = os.environ.copy()
+    env["WINEDEBUG"] = "-all"
+    env["WINEARCH"] = "win64"
+    env["WINEPREFIX"] = args.prefixdir
     tmpcliexe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
     printdbg("""Startup command:
   WINEDEBUG=-all
@@ -270,7 +265,7 @@ def start_with_wine():
   WINEPREFIX={}
   wine {} {} {}""".format(
       env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
-    subproc.call(["wine", tmpcliexe, args.gamedir, args.moddir])
+    subproc.call(["wine", tmpcliexe, args.gamedir, args.moddir], env=env)
 
 
 # download missing or outdated files
