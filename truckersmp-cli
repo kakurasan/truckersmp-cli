@@ -27,15 +27,15 @@ class URL:
 class AppId:
     """ steam AppIds """
     game = {
-        "ats"         : 270880,        # https://steamdb.info/app/270880/
-        "ets2"        : 227300,        # https://steamdb.info/app/227300/
+        "ats":          270880,        # https://steamdb.info/app/270880/
+        "ets2":         227300,        # https://steamdb.info/app/227300/
     }
     proton = {
-        "4.2"         : 1054830,       # https://steamdb.info/app/1054830/
-        "3.16 Beta"   : 996510,        # https://steamdb.info/app/996510/
-        "3.16"        : 961940,        # https://steamdb.info/app/961940/
-        "3.7 Beta"    : 930400,        # https://steamdb.info/app/930400/
-        "3.7"         : 858280,        # https://steamdb.info/app/858280/
+        "4.2":          1054830,       # https://steamdb.info/app/1054830/
+        "3.16 Beta":    996510,        # https://steamdb.info/app/996510/
+        "3.16":         961940,        # https://steamdb.info/app/961940/
+        "3.7 Beta":     930400,        # https://steamdb.info/app/930400/
+        "3.7":          858280,        # https://steamdb.info/app/858280/
     }
     default_proton_ver = "4.2"
 
@@ -46,15 +46,15 @@ class Dir:
     XDG_DATA_HOME = os.getenv("XDG_DATA_HOME",
       os.path.join(os.path.expanduser("~"), ".local/share"))
     default_gamedir = {
-        "ats" : os.path.join(XDG_DATA_HOME,
+        "ats": os.path.join(XDG_DATA_HOME,
           "truckersmp-cli/American Truck Simulator/data"),
-        "ets2" : os.path.join(XDG_DATA_HOME,
+        "ets2": os.path.join(XDG_DATA_HOME,
           "truckersmp-cli/Euro Truck Simulator 2/data"),
     }
     default_prefixdir = {
-        "ats" : os.path.join(XDG_DATA_HOME,
+        "ats": os.path.join(XDG_DATA_HOME,
           "truckersmp-cli/American Truck Simulator/prefix"),
-        "ets2" : os.path.join(XDG_DATA_HOME,
+        "ets2": os.path.join(XDG_DATA_HOME,
           "truckersmp-cli/Euro Truck Simulator 2/prefix"),
     }
     default_moddir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/TruckersMP")
@@ -90,7 +90,7 @@ def download_files(host, files_to_download):
             os.makedirs(destdir, exist_ok = True)
 
             # download file
-            conn.request("GET", path, headers = {"Connection" : "keep-alive"})
+            conn.request("GET", path, headers = {"Connection": "keep-alive"})
             res = conn.getresponse()
 
             if res.status != 200:
@@ -199,10 +199,10 @@ def start_with_proton():
         os.makedirs(args.prefixdir, exist_ok = True)
 
     env = {
-        "SteamGameId" : args.steamid,
-        "SteamAppId" : args.steamid,
-        "STEAM_COMPAT_DATA_PATH" : args.prefixdir,
-        "STEAM_COMPAT_CLIENT_INSTALL_PATH" : steamdir,
+        "SteamGameId": args.steamid,
+        "SteamAppId": args.steamid,
+        "STEAM_COMPAT_DATA_PATH": args.prefixdir,
+        "STEAM_COMPAT_CLIENT_INSTALL_PATH": steamdir,
     }
     for key, value in env.items():
         os.environ[key] = value
@@ -233,9 +233,9 @@ def start_with_wine():
     sys.stdin.readline()
 
     env = {
-        "WINEDEBUG" : "-all",
-        "WINEARCH" : "win64",
-        "WINEPREFIX" : args.prefixdir,
+        "WINEDEBUG": "-all",
+        "WINEARCH": "win64",
+        "WINEPREFIX": args.prefixdir,
     }
     for key, value in env.items():
         os.environ[key] = value
