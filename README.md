@@ -98,7 +98,7 @@ $ ./truckersmp-cli -esw -x "/path/to/prefix/pfx"
 ## Dependencies
 
 ### Required
-* `python3` 3.2 (released in Feb 2011) or later
+* `python3` 3.3 (released in September 2012) or later
 * `steam` either the native linux version in use with proton or the windows steam in use with wine
 
 ### Optional
