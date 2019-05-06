@@ -102,7 +102,9 @@ def download_files(host, files_to_download):
             res = conn.getresponse()
 
             if res.status != 200:
-                printerr("Server response code is not 200.")
+                printerr(
+                  "Server {} responded with status code {}.".format(
+                   host, res.status))
                 return False
 
             lastmod = res.getheader("Last-Modified")
