@@ -2,6 +2,7 @@
 
 import argparse
 import distutils.spawn
+from gettext import ngettext
 import hashlib
 import http.client
 import io
@@ -184,7 +185,7 @@ def start_with_proton():
         # wait for user login
         try:
             if not distutils.spawn.find_executable("inotifywait"):
-                printerr("Inotify-tools not installed,", end=" ")
+                printerr("Inotify-tools not installed.")
                 raise Exception
 
             printdbg("Waiting for Steam using inotifywait.")
@@ -195,15 +196,23 @@ def start_with_proton():
                 printdbg(
                   "Steam should now be up and running and the user logged in.")
             else:
-                printerr("{} is not present,".format(loginusers_vdf), end=" ")
+                printerr("{} is not present.".format(loginusers_vdf))
                 raise Exception
         except Exception:
             # fallback to 30 seconds if inotify-tools is not installed
             # or config/loginusers.vdf is not present
             # Maybe enhance this with manual timestamp comparison
             # in the future.
-            printerr("waiting 30 seconds for steam to start up.")
-            time.sleep(30)
+            waittime = 30
+            while waittime > 0:
+                printerr(
+                  ngettext(
+                   "\rWaiting {} second for steam to start up. ",
+                   "\rWaiting {} seconds for steam to start up. ",
+                   waittime).format(waittime), end="")
+                time.sleep(1)
+                waittime -= 1
+            printerr("")  # newline
             printdbg("Steam should be up now")
 
     if os.path.isdir(args.prefixdir):
