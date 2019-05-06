@@ -74,7 +74,7 @@ def printdbg(msg, end="\n"):
 
 
 def printerr(msg, end="\n"):
-    print(msg, end=end, file=sys.stderr)
+    print("ERROR: {}".format(msg), end=end, file=sys.stderr)
 
 
 def download_files(host, files_to_download):
@@ -177,7 +177,7 @@ def start_with_proton():
         # wait for user login
         try:
             if not shutil.which("inotifywait"):
-                printerr("Inotify-tools not installed.")
+                printdbg("Inotify-tools not installed.")
                 raise Exception
 
             printdbg("Waiting for Steam using inotifywait.")
@@ -188,7 +188,7 @@ def start_with_proton():
                 printdbg(
                   "Steam should now be up and running and the user logged in.")
             else:
-                printerr("{} is not present.".format(loginusers_vdf))
+                printdbg("{} is not present.".format(loginusers_vdf))
                 raise Exception
         except Exception:
             # fallback to 30 seconds if inotify-tools is not installed
@@ -197,14 +197,14 @@ def start_with_proton():
             # in the future.
             waittime = 30
             while waittime > 0:
-                printerr(
+                print(
                   ngettext(
                    "\rWaiting {} second for steam to start up. ",
                    "\rWaiting {} seconds for steam to start up. ",
                    waittime).format(waittime), end="")
                 time.sleep(1)
                 waittime -= 1
-            printerr("")  # newline
+            print("")  # newline
             printdbg("Steam should be up now")
 
     if os.path.isdir(args.prefixdir):
