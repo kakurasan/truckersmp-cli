@@ -123,7 +123,7 @@ def download_files(host, files_to_download):
                     print("\r{:40}{:>40}".format(name, progress), end="")
 
             if md5hash.hexdigest() != md5:
-                print("")  # newline
+                print("\r{:40}{:>40}".format(name, "MD5 ERROR"))
                 printerr("MD5 mismatch for {}".format(dest))
                 return False
 
