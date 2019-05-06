@@ -440,7 +440,8 @@ def update_game():
 def check_args_errors():
     # checks for updating and/or starting
     if not args.update and not args.start:
-        sys.exit("What to do? Starting (-s) or updating (-u) the game?")
+        print(arg_parser.format_help(), end="")
+        sys.exit("\nWhat to do? Starting (-s) or updating (-u) the game?")
 
     # make sure only one game is chosen
     if args.ats and args.ets2:
@@ -583,7 +584,8 @@ if __name__ == "__main__":
     locale.setlocale(locale.LC_TIME, "C")
 
     # parse options
-    args = create_arg_parser().parse_args()
+    arg_parser = create_arg_parser()
+    args = arg_parser.parse_args()
 
     # fallback to old local folder
     if not args.moddir:
