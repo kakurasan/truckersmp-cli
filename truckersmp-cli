@@ -2,6 +2,7 @@
 
 import argparse
 import distutils.spawn
+import errno
 from gettext import ngettext
 import hashlib
 import http.client
@@ -351,15 +352,26 @@ def update_game():
     # make sure steam is closed before updating
     # it's possible to update with the steam client open but the client looses
     # all connectivity and asks for password and steam guard code after restart
-    while True:
-        try:
-            subproc.check_call(["pidof", "steam"], stdout=subproc.DEVNULL)
-        except Exception:
-            break
-        else:
-            printdbg("Found running steam, running pkill -x steam")
-            subproc.call(["pkill", "-x", "steam"])
-            time.sleep(5)
+    try:
+        # space-separated list of steam pids
+        steam_pids_str = str(
+          subproc.check_output(["pidof", "steam"]), "ascii").rstrip()
+        # list of steam pids (strings)
+        steam_pid_list = steam_pids_str.split(" ")
+    except Exception:
+        pass
+    else:
+        printdbg("Found running steam, killing the processes")
+        # number of processes to kill
+        process_count = len(steam_pid_list)
+        # wait until all processes are terminated
+        while process_count > 0:
+            try:
+                for pid in steam_pid_list:
+                    os.kill(int(pid), signal.SIGTERM)
+            except OSError as e:
+                if e.errno == errno.ESRCH:
+                    process_count -= 1
 
     if not os.path.isdir(args.gamedir):
         printdbg("Creating directory {}".format(args.gamedir))
