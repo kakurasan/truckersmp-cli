@@ -65,13 +65,13 @@ class Dir:
     steamcmddir = os.path.join(XDG_CACHE_HOME, "truckersmp-cli/steamcmd")
 
 
-def printdbg(msg, end = "\n"):
+def printdbg(msg, end="\n"):
     if args.verbose:
-        print(msg, end = end)
+        print(msg, end=end)
 
 
-def printerr(msg, end = "\n"):
-    print(msg, end = end, file = sys.stderr)
+def printerr(msg, end="\n"):
+    print(msg, end=end, file=sys.stderr)
 
 
 def download_files(host, files_to_download):
@@ -91,10 +91,10 @@ def download_files(host, files_to_download):
               "Downloading file https://{}{} to {}".format(host, path, destdir))
 
             # make file hierarchy
-            os.makedirs(destdir, exist_ok = True)
+            os.makedirs(destdir, exist_ok=True)
 
             # download file
-            conn.request("GET", path, headers = {"Connection": "keep-alive"})
+            conn.request("GET", path, headers={"Connection": "keep-alive"})
             res = conn.getresponse()
 
             if res.status != 200:
@@ -117,7 +117,7 @@ def download_files(host, files_to_download):
                         progress = "{:,} / {:,}".format(downloaded, int(content_len))
                     else:
                         progress = "{:,}".format(downloaded)
-                    print("\r{:40}{:>40}".format(name, progress), end = "")
+                    print("\r{:40}{:>40}".format(name, progress), end="")
 
             if md5hash.hexdigest() != md5:
                 print("")  # newline
@@ -170,17 +170,17 @@ def start_with_proton():
     # We can detect the timestamp update with inotifywait -e modify.
     # Needs inotify-tools installed
     try:
-        subprocess.check_call(["pidof", "steam"], stdout = subprocess.DEVNULL)
+        subprocess.check_call(["pidof", "steam"], stdout=subprocess.DEVNULL)
     except:
         printdbg("Starting Steam…")
         subprocess.Popen(
           ["nohup", "steam"],
-          stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
+          stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
         # wait for user login
         try:
             if not distutils.spawn.find_executable("inotifywait"):
-                printerr("Inotify-tools not installed,", end = " ")
+                printerr("Inotify-tools not installed,", end=" ")
                 raise Exception
 
             printdbg("Waiting for Steam using inotifywait.")
@@ -190,7 +190,7 @@ def start_with_proton():
                   ["inotifywait", "-e", "modify", "-qq", loginusers_vdf])
                 printdbg("Steam should now be up and running and the user logged in.")
             else:
-                printerr("{} is not present,".format(loginusers_vdf), end = " ")
+                printerr("{} is not present,".format(loginusers_vdf), end=" ")
                 raise Exception
         except:
             # fallback to 30 seconds if inotify-tools is not installed
@@ -202,7 +202,7 @@ def start_with_proton():
 
     if os.path.isdir(args.prefixdir):
         printdbg("Creating directory {}".format(args.prefixdir))
-        os.makedirs(args.prefixdir, exist_ok = True)
+        os.makedirs(args.prefixdir, exist_ok=True)
 
     env = {
         "SteamGameId": args.steamid,
@@ -237,7 +237,7 @@ def start_with_wine():
     #                                                                 #
     ###################################################################
 
-    Press enter if you are good to go: """, end = "")
+    Press enter if you are good to go: """, end="")
     sys.stdin.readline()
 
     env = {
@@ -269,7 +269,7 @@ def update_mod():
             printdbg("Running git pull")
             subprocess.check_call(
               ["git", "-C", Dir.scriptdir, "pull"],
-              stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
+              stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
         else:
             raise Exception
     except:
@@ -277,7 +277,7 @@ def update_mod():
 
     if not os.path.isdir(args.moddir):
         printdbg("Creating directory {}".format(args.moddir))
-        os.makedirs(args.moddir, exist_ok = True)
+        os.makedirs(args.moddir, exist_ok=True)
 
     # get the fileinfo from the server
     try:
@@ -336,7 +336,7 @@ def update_game():
     # all connectivity and asks for password and steam guard code after restart
     while True:
         try:
-            subprocess.check_call(["pidof", "steam"], stdout = subprocess.DEVNULL)
+            subprocess.check_call(["pidof", "steam"], stdout=subprocess.DEVNULL)
         except:
             break
         else:
@@ -346,7 +346,7 @@ def update_game():
 
     if not os.path.isdir(args.gamedir):
         printdbg("Creating directory {}".format(args.gamedir))
-        os.makedirs(args.gamedir, exist_ok = True)
+        os.makedirs(args.gamedir, exist_ok=True)
 
     # fetch steamcmd if not in $PATH
     steamcmd = distutils.spawn.find_executable("steamcmd")
@@ -355,14 +355,14 @@ def update_game():
         steamcmd = os.path.join(Dir.steamcmddir, "steamcmd.sh")
         if not os.path.isfile(steamcmd):
             printdbg("Downloading steamcmd")
-            os.makedirs(Dir.steamcmddir, exist_ok = True)
+            os.makedirs(Dir.steamcmddir, exist_ok=True)
             try:
                 with urllib.request.urlopen(URL.steamcmdurl) as f:
                     steamcmd_targz = f.read()
             except Exception as e:
                 sys.exit("Failed to download steamcmd: {}".format(e))
             with tarfile.open(
-              fileobj = io.BytesIO(steamcmd_targz), mode = "r:gz") as f:
+              fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
                 f.extractall(Dir.steamcmddir)
 
     else:
@@ -375,7 +375,7 @@ def update_game():
 
         if not os.path.isdir(args.protondir):
             printdbg("Creating directory {}".format(args.protondir))
-            os.makedirs(args.protondir, exist_ok = True)
+            os.makedirs(args.protondir, exist_ok=True)
 
         printdbg("""Command:
   {}
@@ -490,58 +490,58 @@ When using standard Wine you should start the windows version of Steam first."""
     epilog += """See https://github.com/ValveSoftware/Proton/issues/162
 if you want to use a lower version than 3.16 Beta."""
     ap = argparse.ArgumentParser(
-      description = desc, epilog = epilog,
-      formatter_class = argparse.RawDescriptionHelpFormatter)
+      description=desc, epilog=epilog,
+      formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
       "-a", "--ats",
-      help = "use American Truck Simulator", action = "store_true")
+      help="use American Truck Simulator", action="store_true")
     ap.add_argument(
       "-e", "--ets2",
-      help = "use Euro Truck Simulator 2", action = "store_true")
+      help="use Euro Truck Simulator 2", action="store_true")
     ap.add_argument(
       "-p", "--proton",
-      help = "start the game with Proton", action = "store_true")
+      help="start the game with Proton", action="store_true")
     ap.add_argument(
       "-w", "--wine",
-      help = "start the game with Wine", action = "store_true")
+      help="start the game with Wine", action="store_true")
     ap.add_argument(
       "-s", "--start",
-      help = "start the game", action = "store_true")
+      help="start the game", action="store_true")
     ap.add_argument(
       "-u", "--update",
-      help = "update the game", action = "store_true")
+      help="update the game", action="store_true")
     ap.add_argument(
       "-v", "--verbose",
-      help = "verbose", action = "store_true")
+      help="verbose", action="store_true")
     ap.add_argument(
-      "-g", "--gamedir", metavar = "DIR", type = str,
-      help = """choose a different directory for the game files
-                [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/data]""")
+      "-g", "--gamedir", metavar="DIR", type=str,
+      help="""choose a different directory for the game files
+              [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/data]""")
     ap.add_argument(
-      "-i", "--proton-appid", metavar = "APPID", type = int,
-      default = AppId.proton[AppId.default_proton_ver],
-      help = "choose a different AppId for Proton (Needs an update for changes)")
+      "-i", "--proton-appid", metavar="APPID", type=int,
+      default=AppId.proton[AppId.default_proton_ver],
+      help="choose a different AppId for Proton (Needs an update for changes)")
     ap.add_argument(
-      "-m", "--moddir", metavar = "DIR", type = str,
-      help = """choose a different directory for the mod files
-                [Default: $XDG_DATA_HOME/truckersmp-cli/TruckersMP,
-                Fallback: ./truckersmp]""")
+      "-m", "--moddir", metavar="DIR", type=str,
+      help="""choose a different directory for the mod files
+              [Default: $XDG_DATA_HOME/truckersmp-cli/TruckersMP,
+              Fallback: ./truckersmp]""")
     ap.add_argument(
-      "-n", "--account", metavar = "NAME", type = str,
-      help = """steam account name to use
-                (This account should own the game and ideally is logged in
-                with saved credentials)""")
+      "-n", "--account", metavar="NAME", type=str,
+      help="""steam account name to use
+              (This account should own the game and ideally is logged in
+              with saved credentials)""")
     ap.add_argument(
-      "-o", "--protondir", metavar = "DIR", type = str,
-      default = Dir.default_protondir,
-      help = """choose a different Proton directory
-                [Default: $XDG_DATA_HOME/truckersmp-cli/Proton]
-                While updating any previous version in this folder gets changed
-                to the given (-i) or default Proton version""")
+      "-o", "--protondir", metavar="DIR", type=str,
+      default=Dir.default_protondir,
+      help="""choose a different Proton directory
+              [Default: $XDG_DATA_HOME/truckersmp-cli/Proton]
+              While updating any previous version in this folder gets changed
+              to the given (-i) or default Proton version""")
     ap.add_argument(
-      "-x", "--prefixdir", metavar = "DIR", type = str,
-      help = """choose a different directory for the prefix
-                [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix]""")
+      "-x", "--prefixdir", metavar="DIR", type=str,
+      help="""choose a different directory for the prefix
+              [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix]""")
 
     return ap
 
@@ -578,7 +578,7 @@ if __name__ == "__main__":
 
     # start truckersmp with proton or wine
     if args.start:
-        printdbg("Starting game with ", end = "")
+        printdbg("Starting game with ", end="")
         if args.proton:
             printdbg("Proton")
             start_with_proton()
