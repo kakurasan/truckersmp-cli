@@ -24,6 +24,7 @@ class URL:
     steamcmdurl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
     issueurl = "https://github.com/lhark/truckersmp-cli/issues"
 
+
 class AppId:
     """ steam AppIds """
     game = {
@@ -38,6 +39,7 @@ class AppId:
         "3.7":          858280,        # https://steamdb.info/app/858280/
     }
     default_proton_ver = "4.2"
+
 
 class Dir:
     """ directories """
@@ -67,8 +69,10 @@ def printdbg(msg, end = "\n"):
     if args.verbose:
         print(msg, end = end)
 
+
 def printerr(msg, end = "\n"):
     print(msg, end = end, file = sys.stderr)
+
 
 def download_files(host, files_to_download):
     try:
@@ -142,6 +146,7 @@ def download_files(host, files_to_download):
         conn.close()
 
     return True
+
 
 def start_with_proton():
     steamdir = None
@@ -221,6 +226,7 @@ def start_with_proton():
     subprocess.call(
       [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir])
 
+
 def start_with_wine():
     print("""
     ###################################################################
@@ -246,6 +252,7 @@ def start_with_wine():
   WINEPREFIX={}
   wine {} {} {}""".format(env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
     subprocess.call(["wine", tmpcliexe, args.gamedir, args.moddir])
+
 
 # download missing or outdated files
 def update_mod():
@@ -317,6 +324,7 @@ Please report an issue: {}""".format(e, URL.issueurl))
         if not download_files(URL.dlurlalt, files_to_download):
             # something went wrong
             sys.exit("Failed to download mod files.")
+
 
 def update_game():
     # make sure steam is closed before updating
@@ -393,6 +401,7 @@ def update_game():
       "+app_update", args.steamid, "validate",
       "+quit"])
 
+
 def check_error():
     # checks for updating and/or starting
     if not args.update and not args.start:
@@ -451,6 +460,7 @@ Need to download (-u) Proton?""".format(args.protondir))
     printdbg("Prefix: {}".format(args.prefixdir))
     if args.proton:
         printdbg("Proton directory: {}".format(args.protondir))
+
 
 def create_arg_parser():
     desc = """
