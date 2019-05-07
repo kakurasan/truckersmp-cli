@@ -69,13 +69,13 @@ class Dir:
     steamcmddir = os.path.join(XDG_CACHE_HOME, "truckersmp-cli/steamcmd")
 
 
-def printdbg(msg, end="\n"):
+def printdbg(*messages, end="\n"):
     if args.verbose:
-        print(msg, end=end, file=sys.stderr)
+        print(*messages, end=end, file=sys.stderr)
 
 
-def printerr(msg, end="\n"):
-    print("ERROR: {}".format(msg), end=end, file=sys.stderr)
+def printerr(*messages, end="\n"):
+    print("ERROR:", *messages, end=end, file=sys.stderr)
 
 
 def download_files(host, files_to_download):
