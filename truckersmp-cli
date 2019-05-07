@@ -155,7 +155,7 @@ def download_files(host, files_to_download):
 
 def start_with_proton():
     steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
-    printdbg("Steam user directory: {}".format(steamdir))
+    printdbg("Steam installation directory:", steamdir)
 
     # make sure steam is started
     # It's probably safe to assume steam is up and running completely started
@@ -381,7 +381,7 @@ def update_game():
 
     else:
         printdbg("steamcmd found in $PATH")
-    printdbg("Steamcmd: {}".format(steamcmd))
+    printdbg("Steamcmd:", steamcmd)
 
     # download/update Proton
     if args.proton:
@@ -479,11 +479,11 @@ Need to download (-u) Proton?""".format(args.protondir))
             sys.exit("Need the steam account name (-n name) to update.")
 
     # debug
-    printdbg("AppId/GameId: {}".format(args.steamid))
-    printdbg("Game directory: {}".format(args.gamedir))
-    printdbg("Prefix: {}".format(args.prefixdir))
+    printdbg("AppId/GameId:", args.steamid)
+    printdbg("Game directory:", args.gamedir)
+    printdbg("Prefix:", args.prefixdir)
     if args.proton:
-        printdbg("Proton directory: {}".format(args.protondir))
+        printdbg("Proton directory:", args.protondir)
 
 
 def create_arg_parser():
@@ -580,7 +580,7 @@ if __name__ == "__main__":
         else:
             printdbg("No moddir set, setting to default")
             args.moddir = Dir.default_moddir
-    printdbg("Mod directory: {}".format(args.moddir))
+    printdbg("Mod directory:", args.moddir)
 
     # check for errors
     check_args_errors()
