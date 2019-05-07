@@ -79,11 +79,7 @@ def printerr(*messages, end="\n"):
 
 
 def download_files(host, files_to_download):
-    try:
-        conn = http.client.HTTPSConnection(host)
-    except Exception as e:
-        printerr("Failed to connect to {}: {}".format(host, e))
-        return False
+    conn = http.client.HTTPSConnection(host)
     try:
         while len(files_to_download) > 0:
             path, dest, md5 = files_to_download[0]
