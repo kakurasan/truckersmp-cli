@@ -2,6 +2,7 @@
 
 import argparse
 import errno
+from getpass import getuser
 from gettext import ngettext
 import hashlib
 import http.client
@@ -167,7 +168,8 @@ def start_with_proton():
     # We can detect the timestamp update with inotifywait -e modify.
     # Needs inotify-tools installed
     try:
-        subproc.check_call(["pidof", "steam"], stdout=subproc.DEVNULL)
+        subproc.check_call(
+          ["pgrep", "-u", getuser(), "-x", "steam"], stdout=subproc.DEVNULL)
     except Exception:
         printdbg("Starting Steam…")
         subproc.Popen(
@@ -339,25 +341,26 @@ def update_game():
     # it's possible to update with the steam client open but the client looses
     # all connectivity and asks for password and steam guard code after restart
     try:
-        # space-separated list of steam pids
+        # newline-separated list of steam pids
         steam_pids_str = str(
-          subproc.check_output(["pidof", "steam"]), "ascii").rstrip()
-        # list of steam pids (strings)
-        steam_pid_list = steam_pids_str.split(" ")
+          subproc.check_output(["pgrep", "-u", getuser(), "-x", "steam"]),
+          "ascii")
+        # list of steam pid strings
+        steam_pid_list = steam_pids_str.splitlines()
     except Exception:
         pass
     else:
         printdbg("Found running steam, killing the processes")
-        # number of processes to kill
-        process_count = len(steam_pid_list)
-        # wait until all processes are terminated
-        while process_count > 0:
+        # wait until all processes are killed
+        while len(steam_pid_list) > 0:
+            pid = int(steam_pid_list[0])
             try:
-                for pid in steam_pid_list:
-                    os.kill(int(pid), signal.SIGTERM)
+                os.kill(pid, signal.SIGTERM)
             except OSError as e:
                 if e.errno == errno.ESRCH:
-                    process_count -= 1
+                    printdbg(
+                      "Process {} has been successfully killed.".format(pid))
+                    del steam_pid_list[0]
 
     if not os.path.isdir(args.gamedir):
         printdbg("Creating directory {}".format(args.gamedir))
