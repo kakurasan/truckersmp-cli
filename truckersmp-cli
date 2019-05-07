@@ -71,7 +71,7 @@ class Dir:
 
 def printdbg(msg, end="\n"):
     if args.verbose:
-        print(msg, end=end)
+        print(msg, end=end, file=sys.stderr)
 
 
 def printerr(msg, end="\n"):
