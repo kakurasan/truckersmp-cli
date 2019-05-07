@@ -48,9 +48,9 @@ class AppId:
 class Dir:
     """ directories """
     XDG_CACHE_HOME = os.getenv(
-      "XDG_CACHE_HOME", os.path.join(os.path.expanduser("~"), ".cache"))
+      "XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
     XDG_DATA_HOME = os.getenv(
-      "XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local/share"))
+      "XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
     default_gamedir = {
         "ats": os.path.join(
           XDG_DATA_HOME, "truckersmp-cli/American Truck Simulator/data"),
