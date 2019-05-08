@@ -25,8 +25,7 @@ class URL:
     dlurlalt = "downloads.ets2mp.com"
     listurl = "https://update.ets2mp.com/files.json"
     issueurl = "https://github.com/lhark/truckersmp-cli/issues"
-    steamcmdurl = "\
-https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+    steamcmdurl = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
 
 
 class AppId:
@@ -47,10 +46,8 @@ class AppId:
 
 class Dir:
     """ directories """
-    XDG_CACHE_HOME = os.getenv(
-      "XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
-    XDG_DATA_HOME = os.getenv(
-      "XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
+    XDG_CACHE_HOME = os.getenv("XDG_CACHE_HOME", os.path.expanduser("~/.cache"))
+    XDG_DATA_HOME = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
     default_gamedir = {
         "ats": os.path.join(
           XDG_DATA_HOME, "truckersmp-cli/American Truck Simulator/data"),
@@ -87,9 +84,7 @@ def download_files(host, files_to_download):
             bufsize = md5hash.block_size * 256
             name = os.path.basename(path)
             destdir = os.path.dirname(dest)
-            printdbg(
-              "Downloading file https://{}{} to {}".format(
-               host, path, destdir))
+            printdbg("Downloading file https://{}{} to {}".format(host, path, destdir))
 
             # make file hierarchy
             os.makedirs(destdir, exist_ok=True)
@@ -100,8 +95,7 @@ def download_files(host, files_to_download):
 
             if res.status != 200:
                 printerr(
-                  "Server {} responded with status code {}.".format(
-                   host, res.status))
+                  "Server {} responded with status code {}.".format(host, res.status))
                 return False
 
             lastmod = res.getheader("Last-Modified")
@@ -117,8 +111,7 @@ def download_files(host, files_to_download):
                     f.write(buf)
                     md5hash.update(buf)
                     if content_len:
-                        progress = "{:,} / {:,}".format(
-                          downloaded, int(content_len))
+                        progress = "{:,} / {:,}".format(downloaded, int(content_len))
                     else:
                         progress = "{:,}".format(downloaded)
                     print("\r{:40}{:>40}".format(name, progress), end="")
@@ -131,8 +124,7 @@ def download_files(host, files_to_download):
             # wget-like timestamping for downloaded files
             if lastmod:
                 timestamp = time.mktime(
-                  time.strptime(
-                   lastmod, "%a, %d %b %Y %H:%M:%S GMT")) - time.timezone
+                  time.strptime(lastmod, "%a, %d %b %Y %H:%M:%S GMT")) - time.timezone
                 try:
                     os.utime(dest, (timestamp, timestamp))
                 except Exception:
@@ -168,9 +160,7 @@ def start_with_proton():
           ["pgrep", "-u", getuser(), "-x", "steam"], stdout=subproc.DEVNULL)
     except Exception:
         printdbg("Starting Steam…")
-        subproc.Popen(
-          ["nohup", "steam"],
-          stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
+        subproc.Popen(["nohup", "steam"], stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
 
         # wait for user login
         try:
@@ -181,10 +171,8 @@ def start_with_proton():
             printdbg("Waiting for Steam using inotifywait.")
             loginusers_vdf = os.path.join(steamdir, "config/loginusers.vdf")
             if os.path.isfile(loginusers_vdf):
-                subproc.call(
-                  ["inotifywait", "-e", "modify", "-qq", loginusers_vdf])
-                printdbg(
-                  "Steam should now be up and running and the user logged in.")
+                subproc.call(["inotifywait", "-e", "modify", "-qq", loginusers_vdf])
+                printdbg("Steam should now be up and running and the user logged in.")
             else:
                 printdbg("{} is not present.".format(loginusers_vdf))
                 raise Exception
@@ -195,11 +183,10 @@ def start_with_proton():
             # in the future.
             waittime = 30
             while waittime > 0:
-                print(
-                  ngettext(
-                   "\rWaiting {} second for steam to start up. ",
-                   "\rWaiting {} seconds for steam to start up. ",
-                   waittime).format(waittime), end="")
+                print(ngettext(
+                  "\rWaiting {} second for steam to start up. ",
+                  "\rWaiting {} seconds for steam to start up. ",
+                  waittime).format(waittime), end="")
                 time.sleep(1)
                 waittime -= 1
             print("")  # newline
@@ -228,8 +215,7 @@ def start_with_proton():
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       sys.executable, proton, tmpcliexe, args.gamedir, args.moddir))
     subproc.call(
-      [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir],
-      env=env)
+      [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir], env=env)
 
 
 def start_with_wine():
@@ -252,8 +238,7 @@ def start_with_wine():
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
-  wine {} {} {}""".format(
-      env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
+  wine {} {} {}""".format(env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
     subproc.call(["wine", tmpcliexe, args.gamedir, args.moddir], env=env)
 
 
@@ -265,8 +250,7 @@ def update_mod():
           ["git", "-C", Dir.scriptdir,
            "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         if out == "origin/master":
-            printdbg(
-              "This script is checked out with git, upstream is origin/master")
+            printdbg("This script is checked out with git, upstream is origin/master")
             printdbg("Running git pull")
             subproc.check_call(
               ["git", "-C", Dir.scriptdir, "pull"],
@@ -339,8 +323,7 @@ def update_game():
     try:
         # newline-separated list of steam pids
         steam_pids_str = str(
-          subproc.check_output(["pgrep", "-u", getuser(), "-x", "steam"]),
-          "ascii")
+          subproc.check_output(["pgrep", "-u", getuser(), "-x", "steam"]), "ascii")
         # list of steam pid strings
         steam_pid_list = steam_pids_str.splitlines()
     except Exception:
@@ -354,8 +337,7 @@ def update_game():
                 os.kill(pid, signal.SIGTERM)
             except OSError as e:
                 if e.errno == errno.ESRCH:
-                    printdbg(
-                      "Process {} has been successfully killed.".format(pid))
+                    printdbg("Process {} has been successfully killed.".format(pid))
                     del steam_pid_list[0]
 
     if not os.path.isdir(args.gamedir):
@@ -375,10 +357,8 @@ def update_game():
                     steamcmd_targz = f.read()
             except Exception as e:
                 sys.exit("Failed to download steamcmd: {}".format(e))
-            with tarfile.open(
-              fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
+            with tarfile.open(fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
                 f.extractall(Dir.steamcmddir)
-
     else:
         printdbg("steamcmd found in $PATH")
     printdbg("Steamcmd:", steamcmd)
@@ -468,15 +448,13 @@ make sure it uses the same folder as proton""")
 Need to download (-u) the game?""".format(args.gamedir))
 
         # check for proton
-        if (not os.path.isfile(os.path.join(args.protondir, "proton"))
-           and args.proton):
+        if not os.path.isfile(os.path.join(args.protondir, "proton")) and args.proton:
             sys.exit("""Proton and no update wanted but Proton not found in {}
 Need to download (-u) Proton?""".format(args.protondir))
 
     # checks for updating
-    if args.update:
-        if not args.account:
-            sys.exit("Need the steam account name (-n name) to update.")
+    if args.update and not args.account:
+        sys.exit("Need the steam account name (-n name) to update.")
 
     # debug
     printdbg("AppId/GameId:", args.steamid)
