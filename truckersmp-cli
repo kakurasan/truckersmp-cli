@@ -74,6 +74,7 @@ class File:
         os.path.expanduser("~/.steam/config/loginusers.vdf"),
         os.path.expanduser("~/.steam/debian-installation/config/loginusers.vdf"),
     ]
+    inject_exe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
 
 
 def printdbg(*messages, end="\n"):
@@ -213,7 +214,6 @@ def start_with_proton():
     env["STEAM_COMPAT_DATA_PATH"] = args.prefixdir
     env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steamdir
     proton = os.path.join(args.protondir, "proton")
-    tmpcliexe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
     printdbg("""Startup command:
   SteamGameId={}
   SteamAppId={}
@@ -224,9 +224,10 @@ def start_with_proton():
   {} {} {}""".format(
       env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
-      sys.executable, proton, tmpcliexe, args.gamedir, args.moddir))
+      sys.executable, proton, File.inject_exe, args.gamedir, args.moddir))
     subproc.call(
-      [sys.executable, proton, "run", tmpcliexe, args.gamedir, args.moddir], env=env)
+      [sys.executable, proton, "run", File.inject_exe, args.gamedir, args.moddir],
+      env=env)
 
 
 def start_with_wine():
@@ -244,13 +245,12 @@ def start_with_wine():
     env["WINEDEBUG"] = "-all"
     env["WINEARCH"] = "win64"
     env["WINEPREFIX"] = args.prefixdir
-    tmpcliexe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
     printdbg("""Startup command:
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
-  wine {} {} {}""".format(env["WINEPREFIX"], tmpcliexe, args.gamedir, args.moddir))
-    subproc.call(["wine", tmpcliexe, args.gamedir, args.moddir], env=env)
+  wine {} {} {}""".format(env["WINEPREFIX"], File.inject_exe, args.gamedir, args.moddir))
+    subproc.call(["wine", File.inject_exe, args.gamedir, args.moddir], env=env)
 
 
 # download missing or outdated files
