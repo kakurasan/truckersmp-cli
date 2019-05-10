@@ -175,7 +175,7 @@ def start_with_proton():
     except Exception:
         printdbg("Starting Steam…")
         subproc.Popen(["nohup", "steam"], stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
-    waittime = 30
+    waittime = 99
     while waittime > 0:
         printdbg(ngettext(
           "\rWaiting {} second for steam to start up. ",
@@ -197,7 +197,7 @@ def start_with_proton():
             continue
         break
     else:
-        # waited 30 seconds without detecting timestamp change
+        # waited 99 seconds without detecting timestamp change
         printdbg("\nSteam should be up now.")
         # could not detect steam installation directory
         # fallback to $XDG_DATA_HOME/Steam
