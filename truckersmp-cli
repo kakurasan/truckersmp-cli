@@ -66,6 +66,16 @@ class Dir:
     steamcmddir = os.path.join(XDG_CACHE_HOME, "truckersmp-cli/steamcmd")
 
 
+class File:
+    """ files """
+    # known paths for [steam installation directory]/config/loginusers.vdf
+    loginusers_paths = [
+        os.path.join(Dir.XDG_DATA_HOME, "Steam/config/loginusers.vdf"),
+        os.path.expanduser("~/.steam/config/loginusers.vdf"),
+        os.path.expanduser("~/.steam/debian-installation/config/loginusers.vdf"),
+    ]
+
+
 def printdbg(*messages, end="\n"):
     if args.verbose:
         print(*messages, end=end, file=sys.stderr)
@@ -146,51 +156,52 @@ def download_files(host, files_to_download):
 
 
 def start_with_proton():
-    steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
-    printdbg("Steam installation directory:", steamdir)
-
     # make sure steam is started
     # It's probably safe to assume steam is up and running completely started
     # when the user is logged in. On user login the timestamp in
-    # [steam user directory]/config/loginusers.vdf gets updated.
-    # We can detect the timestamp update with inotifywait -e modify.
-    # Needs inotify-tools installed
+    # [steam installation directory]/config/loginusers.vdf gets updated.
+    # We can detect the timestamp update with comparing timestamps.
+    loginusers_timestamps = []
+    for path in File.loginusers_paths:
+        try:
+            st = os.stat(path)
+            loginusers_timestamps.append(st.st_mtime)
+        except OSError:
+            loginusers_timestamps.append(0)
     try:
         subproc.check_call(
           ["pgrep", "-u", getuser(), "-x", "steam"], stdout=subproc.DEVNULL)
     except Exception:
         printdbg("Starting Steam…")
         subproc.Popen(["nohup", "steam"], stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
-
-        # wait for user login
-        try:
-            if not shutil.which("inotifywait"):
-                printdbg("Inotify-tools not installed.")
-                raise Exception
-
-            printdbg("Waiting for Steam using inotifywait.")
-            loginusers_vdf = os.path.join(steamdir, "config/loginusers.vdf")
-            if os.path.isfile(loginusers_vdf):
-                subproc.call(["inotifywait", "-e", "modify", "-qq", loginusers_vdf])
-                printdbg("Steam should now be up and running and the user logged in.")
-            else:
-                printdbg("{} is not present.".format(loginusers_vdf))
-                raise Exception
-        except Exception:
-            # fallback to 30 seconds if inotify-tools is not installed
-            # or config/loginusers.vdf is not present
-            # Maybe enhance this with manual timestamp comparison
-            # in the future.
-            waittime = 30
-            while waittime > 0:
-                print(ngettext(
-                  "\rWaiting {} second for steam to start up. ",
-                  "\rWaiting {} seconds for steam to start up. ",
-                  waittime).format(waittime), end="")
-                time.sleep(1)
-                waittime -= 1
-            print("")  # newline
-            printdbg("Steam should be up now")
+    waittime = 30
+    while waittime > 0:
+        printdbg(ngettext(
+          "\rWaiting {} second for steam to start up. ",
+          "\rWaiting {} seconds for steam to start up. ",
+          waittime).format(waittime), end="")
+        time.sleep(1)
+        waittime -= 1
+        for i, path in enumerate(File.loginusers_paths):
+            try:
+                st = os.stat(path)
+                if st.st_mtime > loginusers_timestamps[i]:
+                    printdbg(
+                      "\rSteam should now be up and running and the user logged in.")
+                    steamdir = os.path.dirname(os.path.dirname(File.loginusers_paths[i]))
+                    break
+            except OSError:
+                pass
+        else:
+            continue
+        break
+    else:
+        # waited 30 seconds without detecting timestamp change
+        printdbg("\nSteam should be up now.")
+        # could not detect steam installation directory
+        # fallback to $XDG_DATA_HOME/Steam
+        steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
+    printdbg("Steam installation directory:", steamdir)
 
     if os.path.isdir(args.prefixdir):
         printdbg("Creating directory {}".format(args.prefixdir))

@@ -102,7 +102,6 @@ $ ./truckersmp-cli -esw -x "/path/to/prefix/pfx"
 * `steam` either the native linux version in use with proton or the windows steam in use with wine
 
 ### Optional
-* `inotify-tools` to detect if steam is started completely
 * `steamcmd` for updating proton or the game files, will be fetched automatically by the script if not present in `$PATH`
 * `wine` as a possible replacement to proton
 * `git` to clone this repo and self update the script
