@@ -175,33 +175,43 @@ def start_with_proton():
     except Exception:
         printdbg("Starting Steam…")
         subproc.Popen(["nohup", "steam"], stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
-    waittime = 99
-    while waittime > 0:
-        printdbg(ngettext(
-          "\rWaiting {} second for steam to start up. ",
-          "\rWaiting {} seconds for steam to start up. ",
-          waittime).format(waittime), end="")
-        time.sleep(1)
-        waittime -= 1
-        for i, path in enumerate(File.loginusers_paths):
-            try:
-                st = os.stat(path)
-                if st.st_mtime > loginusers_timestamps[i]:
-                    printdbg(
-                      "\rSteam should now be up and running and the user logged in.")
-                    steamdir = os.path.dirname(os.path.dirname(File.loginusers_paths[i]))
-                    break
-            except OSError:
-                pass
+        waittime = 99
+        while waittime > 0:
+            printdbg(ngettext(
+              "\rWaiting {} second for steam to start up. ",
+              "\rWaiting {} seconds for steam to start up. ",
+              waittime).format(waittime), end="")
+            time.sleep(1)
+            waittime -= 1
+            for i, path in enumerate(File.loginusers_paths):
+                try:
+                    st = os.stat(path)
+                    if st.st_mtime > loginusers_timestamps[i]:
+                        printdbg(
+                          "\rSteam should now be up and running and the user logged in.")
+                        steamdir = os.path.dirname(
+                          os.path.dirname(File.loginusers_paths[i]))
+                        break
+                except OSError:
+                    pass
+            else:
+                continue
+            break
         else:
-            continue
-        break
+            # waited 99 seconds without detecting timestamp change
+            printdbg("\nSteam should be up now.")
+            # could not detect steam installation directory
+            # fallback to $XDG_DATA_HOME/Steam
+            steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
     else:
-        # waited 99 seconds without detecting timestamp change
-        printdbg("\nSteam should be up now.")
-        # could not detect steam installation directory
-        # fallback to $XDG_DATA_HOME/Steam
-        steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
+        # Steam is running
+        # detect most recently updated "loginusers.vdf" file
+        printdbg("Steam is running")
+        max_mtime = max(loginusers_timestamps)
+        for i, path in enumerate(File.loginusers_paths):
+            if loginusers_timestamps[i] == max_mtime:
+                steamdir = os.path.dirname(os.path.dirname(File.loginusers_paths[i]))
+                break
     printdbg("Steam installation directory:", steamdir)
 
     if os.path.isdir(args.prefixdir):
