@@ -331,25 +331,8 @@ def update_game():
     # make sure steam is closed before updating
     # it's possible to update with the steam client open but the client looses
     # all connectivity and asks for password and steam guard code after restart
-    try:
-        # newline-separated list of steam pids
-        steam_pids_str = str(
-          subproc.check_output(["pgrep", "-u", getuser(), "-x", "steam"]), "ascii")
-        # list of steam pid strings
-        steam_pid_list = steam_pids_str.splitlines()
-    except Exception:
-        pass
-    else:
-        printdbg("Found running steam, killing the processes")
-        # wait until all processes are killed
-        while len(steam_pid_list) > 0:
-            pid = int(steam_pid_list[0])
-            try:
-                os.kill(pid, signal.SIGTERM)
-            except OSError as e:
-                if e.errno == errno.ESRCH:
-                    printdbg("Process {} has been successfully killed.".format(pid))
-                    del steam_pid_list[0]
+    printdbg("Closing Steam")
+    subproc.call(["steam", "-shutdown"])
 
     if not os.path.isdir(args.gamedir):
         printdbg("Creating directory {}".format(args.gamedir))
