@@ -35,13 +35,12 @@ class AppId:
         "ets2":         227300,        # https://steamdb.info/app/227300/
     }
     proton = {
+        "4.11":         1113280,       # https://steamdb.info/app/1113280/
         "4.2":          1054830,       # https://steamdb.info/app/1054830/
-        "3.16 Beta":    996510,        # https://steamdb.info/app/996510/
         "3.16":         961940,        # https://steamdb.info/app/961940/
-        "3.7 Beta":     930400,        # https://steamdb.info/app/930400/
         "3.7":          858280,        # https://steamdb.info/app/858280/
     }
-    default_proton_ver = "4.2"
+    default_proton_ver = "4.11"
 
 
 class Dir:
@@ -487,7 +486,7 @@ When using standard Wine you should start the windows version of Steam first.
         default_mark = " (Default)" if k == AppId.default_proton_ver else ""
         epilog += "    Proton {:13}: {:>10}{}\n".format(k, v, default_mark)
     epilog += """See https://github.com/ValveSoftware/Proton/issues/162
-if you want to use a lower version than 3.16 Beta."""
+if you want to use a lower version than 4.2."""
     ap = argparse.ArgumentParser(
       description=desc, epilog=epilog,
       formatter_class=argparse.RawDescriptionHelpFormatter)
