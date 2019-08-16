@@ -394,15 +394,23 @@ def update_game():
     +@sSteamCmdForcePlatformType windows
     +login {}
     +force_install_dir {}
-    +app_update {} validate
-    +quit""".format(steamcmd, args.account, args.gamedir, args.steamid))
-    subproc.call(
-      [steamcmd,
-       "+@sSteamCmdForcePlatformType", "windows",
-       "+login", args.account,
-       "+force_install_dir", args.gamedir,
-       "+app_update", args.steamid, "validate",
-       "+quit"])
+    +app_update {}{} validate
+    +quit""".format(
+      steamcmd, args.account, args.gamedir, args.steamid,
+      " -beta {}".format(args.beta) if args.beta else ""))
+    cmdline = [
+        steamcmd,
+        "+@sSteamCmdForcePlatformType", "windows",
+        "+login", args.account,
+        "+force_install_dir", args.gamedir,
+        "+app_update", args.steamid,
+    ]
+    if args.beta:
+        cmdline.append("-beta")
+        cmdline.append(args.beta)
+    cmdline.append("validate")
+    cmdline.append("+quit")
+    subproc.call(cmdline)
 
 
 def check_args_errors():
@@ -540,6 +548,10 @@ if you want to use a lower version than 4.2."""
       "-x", "--prefixdir", metavar="DIR", type=str,
       help="""choose a different directory for the prefix
               [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix]""")
+    ap.add_argument(
+      "--beta", metavar="VERSION", type=str,
+      help="""set game version to VERSION,
+              useful for downgrading (e.g. "temporary_1_35")""")
 
     return ap
 
