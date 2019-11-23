@@ -61,8 +61,8 @@ class Dir:
     }
     default_moddir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/TruckersMP")
     default_protondir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/Proton")
+    steamcmddir = os.path.join(XDG_DATA_HOME, "truckersmp-cli/steamcmd")
     scriptdir = os.path.dirname(os.path.realpath(__file__))
-    steamcmddir = os.path.join(XDG_CACHE_HOME, "truckersmp-cli/steamcmd")
 
 
 class File:
@@ -350,23 +350,20 @@ def update_game():
         printdbg("Creating directory {}".format(args.gamedir))
         os.makedirs(args.gamedir, exist_ok=True)
 
-    # fetch steamcmd if not in $PATH
-    steamcmd = shutil.which("steamcmd")
-    if not steamcmd:
-        printdbg("steamcmd not found in $PATH")
-        steamcmd = os.path.join(Dir.steamcmddir, "steamcmd.sh")
-        if not os.path.isfile(steamcmd):
-            printdbg("Downloading steamcmd")
-            os.makedirs(Dir.steamcmddir, exist_ok=True)
-            try:
-                with urllib.request.urlopen(URL.steamcmdurl) as f:
-                    steamcmd_targz = f.read()
-            except Exception as e:
-                sys.exit("Failed to download steamcmd: {}".format(e))
-            with tarfile.open(fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
-                f.extractall(Dir.steamcmddir)
-    else:
-        printdbg("steamcmd found in $PATH")
+    # fetch steamcmd if not in our data directory
+    # we don't use system steamcmd because something goes wrong in some cases
+    # see https://github.com/lhark/truckersmp-cli/issues/43
+    steamcmd = os.path.join(Dir.steamcmddir, "steamcmd.sh")
+    if not os.path.isfile(steamcmd):
+        printdbg("Downloading steamcmd")
+        os.makedirs(Dir.steamcmddir, exist_ok=True)
+        try:
+            with urllib.request.urlopen(URL.steamcmdurl) as f:
+                steamcmd_targz = f.read()
+        except Exception as e:
+            sys.exit("Failed to download steamcmd: {}".format(e))
+        with tarfile.open(fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
+            f.extractall(Dir.steamcmddir)
     printdbg("Steamcmd:", steamcmd)
 
     # download/update Proton
