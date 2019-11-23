@@ -213,9 +213,9 @@ def start_with_proton():
                 break
     printdbg("Steam installation directory:", steamdir)
 
-    if os.path.isdir(args.prefixdir):
+    if not os.path.isdir(args.prefixdir):
         printdbg("Creating directory {}".format(args.prefixdir))
-        os.makedirs(args.prefixdir, exist_ok=True)
+    os.makedirs(args.prefixdir, exist_ok=True)
 
     env = os.environ.copy()
     env["SteamGameId"] = args.steamid
