@@ -222,20 +222,20 @@ def start_with_proton():
     env["SteamAppId"] = args.steamid
     env["STEAM_COMPAT_DATA_PATH"] = args.prefixdir
     env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steamdir
-    env["PROTON_USE_D9VK"] = "1" if args.use_d9vk else "0"
+    env["PROTON_USE_WINED3D"] = "1" if args.use_wined3d else "0"
     proton = os.path.join(args.protondir, "proton")
     printdbg("""Startup command:
   SteamGameId={}
   SteamAppId={}
   STEAM_COMPAT_DATA_PATH={}
   STEAM_COMPAT_CLIENT_INSTALL_PATH={}
-  PROTON_USE_D9VK={}
+  PROTON_USE_WINED3D={}
   {} {}
   run
   {} {} {}""".format(
       env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
-      env["PROTON_USE_D9VK"],
+      env["PROTON_USE_WINED3D"],
       sys.executable, proton, File.inject_exe, args.gamedir, args.moddir))
     subproc.call(
       [sys.executable, proton, "run", File.inject_exe, args.gamedir, args.moddir],
@@ -549,8 +549,9 @@ if you want to use a lower version than 4.2."""
       help="""choose a different directory for the prefix
               [Default: $XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix]""")
     ap.add_argument(
-      "--use-d9vk",
-      help="use D9VK when using D3D9 with Proton 4.11+", action="store_true")
+      "--use-wined3d",
+      help="use OpenGL-based D3D11 instead of DXVK when using Proton",
+      action="store_true")
     ap.add_argument(
       "--beta", metavar="VERSION", type=str,
       help="""set game version to VERSION,
