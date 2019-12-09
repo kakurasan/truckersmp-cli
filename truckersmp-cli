@@ -223,6 +223,7 @@ def start_with_proton():
     env["STEAM_COMPAT_DATA_PATH"] = args.prefixdir
     env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steamdir
     env["PROTON_USE_WINED3D"] = "1" if args.use_wined3d else "0"
+    env["PROTON_NO_D3D11"] = "1" if args.disable_d3d11 else "0"
     proton = os.path.join(args.protondir, "proton")
     printdbg("""Startup command:
   SteamGameId={}
@@ -230,12 +231,14 @@ def start_with_proton():
   STEAM_COMPAT_DATA_PATH={}
   STEAM_COMPAT_CLIENT_INSTALL_PATH={}
   PROTON_USE_WINED3D={}
+  PROTON_NO_D3D11={}
   {} {}
   run
   {} {} {}""".format(
       env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       env["PROTON_USE_WINED3D"],
+      env["PROTON_NO_D3D11"],
       sys.executable, proton, File.inject_exe, args.gamedir, args.moddir))
     subproc.call(
       [sys.executable, proton, "run", File.inject_exe, args.gamedir, args.moddir],
@@ -257,11 +260,15 @@ def start_with_wine():
     env["WINEDEBUG"] = "-all"
     env["WINEARCH"] = "win64"
     env["WINEPREFIX"] = args.prefixdir
+    env["WINEDLLOVERRIDES"] = "d3d11=;dxgi=" if args.disable_d3d11 else ""
     printdbg("""Startup command:
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
-  wine {} {} {}""".format(env["WINEPREFIX"], File.inject_exe, args.gamedir, args.moddir))
+  WINEDLLOVERRIDES="{}"
+  wine {} {} {}""".format(
+      env["WINEPREFIX"], env["WINEDLLOVERRIDES"],
+      File.inject_exe, args.gamedir, args.moddir))
     subproc.call(["wine", File.inject_exe, args.gamedir, args.moddir], env=env)
 
 
@@ -551,6 +558,10 @@ if you want to use a lower version than 4.2."""
     ap.add_argument(
       "--use-wined3d",
       help="use OpenGL-based D3D11 instead of DXVK when using Proton",
+      action="store_true")
+    ap.add_argument(
+      "--disable-d3d11",
+      help="disable Direct3D 11, useful for using OpenGL renderer",
       action="store_true")
     ap.add_argument(
       "--beta", metavar="VERSION", type=str,
