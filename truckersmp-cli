@@ -297,7 +297,7 @@ def start_with_proton():
 
 
 def start_with_wine():
-    wine = "wine"
+    wine = os.environ["WINE"] if "WINE" in os.environ else "wine"
     if args.activate_native_d3dcompiler_47:
         activate_native_d3dcompiler_47(args.prefixdir, wine)
 
