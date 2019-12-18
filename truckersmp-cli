@@ -76,6 +76,7 @@ class File:
         os.path.expanduser("~/.steam/debian-installation/config/loginusers.vdf"),
     ]
     inject_exe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
+    overlayrenderer_inner = "ubuntu12_64/gameoverlayrenderer.so"
     d3dcompiler_47 = os.path.join(Dir.dllsdir, "d3dcompiler_47.dll")
     d3dcompiler_47_md5 = "b2cc65e1930e75f563078c6a20221b37"
 
@@ -278,6 +279,16 @@ def start_with_proton():
     env["STEAM_COMPAT_CLIENT_INSTALL_PATH"] = steamdir
     env["PROTON_USE_WINED3D"] = "1" if args.use_wined3d else "0"
     env["PROTON_NO_D3D11"] = "1" if args.disable_d3d11 else "0"
+    # enable Steam Overlay unless "--disable-proton-overlay" is specified
+    if args.disable_proton_overlay:
+        ld_preload = ""
+    else:
+        overlayrenderer = os.path.join(steamdir, File.overlayrenderer_inner)
+        if "LD_PRELOAD" in env:
+            env["LD_PRELOAD"] += ":" + overlayrenderer
+        else:
+            env["LD_PRELOAD"] = overlayrenderer
+        ld_preload = "LD_PRELOAD={}\n  ".format(env["LD_PRELOAD"])
     proton = os.path.join(args.protondir, "proton")
     printdbg("""Startup command:
   SteamGameId={}
@@ -286,13 +297,14 @@ def start_with_proton():
   STEAM_COMPAT_CLIENT_INSTALL_PATH={}
   PROTON_USE_WINED3D={}
   PROTON_NO_D3D11={}
-  {} {}
+  {}{} {}
   run
   {} {} {}""".format(
       env["SteamGameId"], env["SteamAppId"],
       env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
       env["PROTON_USE_WINED3D"],
       env["PROTON_NO_D3D11"],
+      ld_preload,
       sys.executable, proton, File.inject_exe, args.gamedir, args.moddir))
     subproc.call(
       [sys.executable, proton, "run", File.inject_exe, args.gamedir, args.moddir],
@@ -625,6 +637,10 @@ if you want to use a lower version than 4.2."""
     ap.add_argument(
       "--disable-d3d11",
       help="disable Direct3D 11, useful for using OpenGL renderer",
+      action="store_true")
+    ap.add_argument(
+      "--disable-proton-overlay",
+      help="disable Steam Overlay when using Proton",
       action="store_true")
     ap.add_argument(
       "--beta", metavar="VERSION", type=str,
