@@ -290,6 +290,16 @@ def start_with_proton():
             env["LD_PRELOAD"] = overlayrenderer
         ld_preload = "LD_PRELOAD={}\n  ".format(env["LD_PRELOAD"])
     proton = os.path.join(args.protondir, "proton")
+    # check whether singleplayer or multiplayer
+    argv = [sys.executable, proton, "run"]
+    if args.singleplayer:
+        exename = "eurotrucks2.exe" if args.ets2 else "amtrucks.exe"
+        gamepath = os.path.join(args.gamedir, "bin/win_x64", exename)
+        for arg in (gamepath, "-nointro", "-64bit"):
+            argv.append(arg)
+    else:
+        for arg in (File.inject_exe, args.gamedir, args.moddir):
+            argv.append(arg)
     printdbg("""Startup command:
   SteamGameId={}
   SteamAppId={}
@@ -305,10 +315,8 @@ def start_with_proton():
       env["PROTON_USE_WINED3D"],
       env["PROTON_NO_D3D11"],
       ld_preload,
-      sys.executable, proton, File.inject_exe, args.gamedir, args.moddir))
-    subproc.call(
-      [sys.executable, proton, "run", File.inject_exe, args.gamedir, args.moddir],
-      env=env)
+      sys.executable, proton, argv[-3], argv[-2], argv[-1]))
+    subproc.call(argv, env=env)
 
 
 def start_with_wine():
@@ -331,15 +339,23 @@ def start_with_wine():
     env["WINEARCH"] = "win64"
     env["WINEPREFIX"] = args.prefixdir
     env["WINEDLLOVERRIDES"] = "d3d11=;dxgi=" if not args.enable_d3d11 else ""
+    argv = ["wine", ]
+    if args.singleplayer:
+        exename = "eurotrucks2.exe" if args.ets2 else "amtrucks.exe"
+        gamepath = os.path.join(args.gamedir, "bin/win_x64", exename)
+        for arg in (gamepath, "-nointro", "-64bit"):
+            argv.append(arg)
+    else:
+        for arg in (File.inject_exe, args.gamedir, args.moddir):
+            argv.append(arg)
     printdbg("""Startup command:
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
   WINEDLLOVERRIDES="{}"
   wine {} {} {}""".format(
-      env["WINEPREFIX"], env["WINEDLLOVERRIDES"],
-      File.inject_exe, args.gamedir, args.moddir))
-    subproc.call([wine, File.inject_exe, args.gamedir, args.moddir], env=env)
+      env["WINEPREFIX"], env["WINEDLLOVERRIDES"], argv[-3], argv[-2], argv[-1]))
+    subproc.call(argv, env=env)
 
 
 # download missing or outdated files
@@ -646,6 +662,11 @@ if you want to use a lower version than 4.2."""
       "--beta", metavar="VERSION", type=str,
       help="""set game version to VERSION,
               useful for downgrading (e.g. "temporary_1_35")""")
+    ap.add_argument(
+      "--singleplayer",
+      help="""start singleplayer game, useful for save editing,
+              using/testing DXVK in singleplayer, etc.""",
+      action="store_true")
 
     return ap
 
@@ -677,9 +698,10 @@ if __name__ == "__main__":
         printdbg("Updating game files")
         update_game()
 
-    # always update truckersmp
-    printdbg("Updating mod files")
-    update_mod()
+    # update truckersmp when starting multiplayer
+    if not args.singleplayer:
+        printdbg("Updating mod files")
+        update_mod()
 
     # start truckersmp with proton or wine
     if args.start:
