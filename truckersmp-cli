@@ -570,16 +570,15 @@ Need to download (-u) Proton?""".format(args.protondir))
 
 def create_arg_parser():
     desc = """
-truckersmp-cli is an easy to use script to download TruckersMP and start the
-game afterwards.
+truckersmp-cli is an easy to use script to download TruckersMP and start
+the game afterwards.
 It can install and update the windows version of
-American Truck Simulator (-a) or Euro Truck Simulator 2 (-e)
-with steamcmd (-u) and handles starting (-s) the mod through Proton aka.
-Steam Play (-p) or Wine (-w).
-It needs a working Steam installation in $XDG_DATA_HOME/Steam for starting
-through Proton or to update the game files. It will
-stop all running Steam processes while updating to prevent Steam asking
-for password and guard code at the next startup.
+American Truck Simulator (-a, --ats) or Euro Truck Simulator 2 (-e, --ets2)
+with steamcmd (-u, --update) and handles starting (-s, --start) the mod
+through Proton aka. Steam Play (-p, --proton) or Wine (-w, --wine).
+It needs a working Steam installation for starting through Proton or to update
+the game files. It will stop all running Steam processes while updating to
+prevent Steam asking for password and guard code at the next startup.
 When using standard Wine you should start the windows version of Steam first.
 """
     epilog = "Proton AppId list:\n"
