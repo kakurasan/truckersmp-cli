@@ -49,9 +49,6 @@ Short option|Long option|Description
 Version|AppId
 ---|---
 4.11 (Default)|[1113280](https://steamdb.info/app/1113280/)
-4.2|[1054830](https://steamdb.info/app/1054830/)
-3.16|[961940](https://steamdb.info/app/961940/)
-3.7|[858280](https://steamdb.info/app/858280/)
 
 ## Rendering backends
 
