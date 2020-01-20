@@ -71,6 +71,36 @@ Version|AppId
     * When using Proton, wined3d can be used by specifying `--use-wined3d`, but it's not recommended because this is slower than OpenGL.
 * Used only when `--enable-d3d11` is specified.
 
+## Default directories
+
+### Game data
+
+Game|Path
+---|---
+ETS2|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/`
+ATS|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/`
+
+### Wineprefix
+
+Game|Path
+---|---
+ETS2|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/prefix/pfx/`
+ATS|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/prefix/pfx/`
+
+### Singleplayer mods and ProMods
+
+Game|Proton|Wine
+---|---|---
+ETS2|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/prefix/pfx/drive_c/users/steamuser/My Documents/Euro Truck Simulator 2/mod/`|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/prefix/pfx/drive_c/users/(os_login_name)/My Documents/Euro Truck Simulator 2/mod/`
+ATS|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/prefix/pfx/drive_c/users/steamuser/My Documents/American Truck Simulator/mod/`|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/prefix/pfx/drive_c/users/(os_login_name)/My Documents/American Truck Simulator/mod/`
+
+### Winter mod for ETS2MP/ATSMP
+
+Game|Proton|Wine
+---|---|---
+ETS2|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/prefix/pfx/drive_c/users/steamuser/My Documents/ETS2MP/mod/`|`$XDG_DATA_HOME/truckersmp-cli/Euro Truck Simulator 2/prefix/pfx/drive_c/users/(os_login_name)/My Documents/ETS2MP/mod/`
+ATS|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/prefix/pfx/drive_c/users/steamuser/My Documents/ATSMP/mod/`|`$XDG_DATA_HOME/truckersmp-cli/American Truck Simulator/prefix/pfx/drive_c/users/(os_login_name)/My Documents/ATSMP/mod/`
+
 ## Examples
 
 ### Install Euro Truck Simulator 2
@@ -87,9 +117,7 @@ $ ./truckersmp-cli -eusp -n your_steam_account
 
 ### Only start TruckersMP without updating Euro Truck Simulator 2 using Wine
 
-Note:
-* Make sure Wine Steam is running in the same `$WINEPREFIX`!
-* Default prefix folder is `$XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix`.
+Note: Make sure Wine Steam is running in the same `$WINEPREFIX`!
 
 ```
 $ ./truckersmp-cli -esw
