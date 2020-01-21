@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import errno
 from getpass import getuser
 from gettext import ngettext
 import hashlib
