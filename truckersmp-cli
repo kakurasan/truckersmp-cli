@@ -65,14 +65,15 @@ class Dir:
 
 class File:
     """ files """
+    loginvdf_inner = "config/loginusers.vdf"
     # known paths for [steam installation directory]/config/loginusers.vdf
     loginusers_paths = [
         # Official (Valve) version
-        os.path.join(Dir.XDG_DATA_HOME, "Steam/config/loginusers.vdf"),
+        os.path.join(Dir.XDG_DATA_HOME, "Steam", loginvdf_inner),
         # Debian-based systems, old path
-        os.path.expanduser("~/.steam/config/loginusers.vdf"),
+        os.path.join(os.path.expanduser("~/.steam"), loginvdf_inner),
         # Debian-based systems, new path
-        os.path.expanduser("~/.steam/debian-installation/config/loginusers.vdf"),
+        os.path.join(os.path.expanduser("~/.steam/debian-installation"), loginvdf_inner),
     ]
     inject_exe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
     overlayrenderer_inner = "ubuntu12_64/gameoverlayrenderer.so"
