@@ -67,8 +67,11 @@ class File:
     """ files """
     # known paths for [steam installation directory]/config/loginusers.vdf
     loginusers_paths = [
+        # Official (Valve) version
         os.path.join(Dir.XDG_DATA_HOME, "Steam/config/loginusers.vdf"),
+        # Debian-based systems, old path
         os.path.expanduser("~/.steam/config/loginusers.vdf"),
+        # Debian-based systems, new path
         os.path.expanduser("~/.steam/debian-installation/config/loginusers.vdf"),
     ]
     inject_exe = os.path.join(Dir.scriptdir, "truckersmp-cli.exe")
