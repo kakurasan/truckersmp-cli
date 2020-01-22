@@ -365,7 +365,7 @@ def update_mod():
         out = subproc.check_output(
           ["git", "-C", Dir.scriptdir,
            "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
-        if out == "origin/master":
+        if out == b"origin/master\n":
             printdbg("This script is checked out with git, upstream is origin/master")
             printdbg("Running git pull")
             subproc.check_call(
