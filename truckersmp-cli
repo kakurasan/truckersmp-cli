@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 from getpass import getuser
 from gettext import ngettext
 import hashlib
@@ -81,15 +82,6 @@ class File:
     d3dcompiler_47_md5 = "b2cc65e1930e75f563078c6a20221b37"
 
 
-def printdbg(*messages, end="\n"):
-    if args.verbose:
-        print(*messages, end=end, file=sys.stderr)
-
-
-def printerr(*messages, end="\n"):
-    print("ERROR:", *messages, end=end, file=sys.stderr)
-
-
 def download_files(host, files_to_download):
     conn = http.client.HTTPSConnection(host)
     try:
@@ -99,7 +91,8 @@ def download_files(host, files_to_download):
             bufsize = md5hash.block_size * 256
             name = os.path.basename(path)
             destdir = os.path.dirname(dest)
-            printdbg("Downloading file https://{}{} to {}".format(host, path, destdir))
+            logging.debug(
+              "Downloading file https://{}{} to {}".format(host, path, destdir))
 
             # make file hierarchy
             os.makedirs(destdir, exist_ok=True)
@@ -109,7 +102,7 @@ def download_files(host, files_to_download):
             res = conn.getresponse()
 
             if res.status != 200:
-                printerr(
+                logging.error(
                   "Server {} responded with status code {}.".format(host, res.status))
                 return False
 
@@ -133,7 +126,7 @@ def download_files(host, files_to_download):
 
             if md5hash.hexdigest() != md5:
                 print("\r{:40}{:>40}".format(name, "MD5 MISMATCH"))
-                printerr("MD5 mismatch for {}".format(dest))
+                logging.error("MD5 mismatch for {}".format(dest))
                 return False
 
             # wget-like timestamping for downloaded files
@@ -152,7 +145,7 @@ def download_files(host, files_to_download):
             # when trying to download from URL.dlurlalt
             del files_to_download[0]
     except Exception as e:
-        printerr("Failed to download https://{}{}: {}".format(host, path, e))
+        logging.error("Failed to download https://{}{}: {}".format(host, path, e))
         return False
     finally:
         conn.close()
@@ -172,7 +165,7 @@ def activate_native_d3dcompiler_47(prefix, wine):
                     break
                 md5hash.update(buf)
         if md5hash.hexdigest() == File.d3dcompiler_47_md5:
-            printdbg("d3dcompiler_47.dll is present, MD5 is OK.")
+            logging.debug("d3dcompiler_47.dll is present, MD5 is OK.")
             need_download = False
     except Exception as e:
         pass
@@ -180,7 +173,7 @@ def activate_native_d3dcompiler_47(prefix, wine):
     # download 64-bit d3dcompiler_47.dll from ImagingSIMS' repo
     # https://github.com/ImagingSIMS/ImagingSIMS
     if need_download:
-        printdbg("Downloading d3dcompiler_47.dll")
+        logging.debug("Downloading d3dcompiler_47.dll")
         os.makedirs(Dir.dllsdir, exist_ok=True)
         if not download_files(
           URL.raw_github,
@@ -189,7 +182,7 @@ def activate_native_d3dcompiler_47(prefix, wine):
 
     # copy into system32
     destdir = os.path.join(prefix, "drive_c/windows/system32")
-    printdbg("Copying d3dcompiler_47.dll into {}".format(destdir))
+    logging.debug("Copying d3dcompiler_47.dll into {}".format(destdir))
     shutil.copy(File.d3dcompiler_47, destdir)
 
     # add DLL override setting
@@ -197,7 +190,7 @@ def activate_native_d3dcompiler_47(prefix, wine):
     env["WINEDEBUG"] = "-all"
     env["WINEPREFIX"] = prefix
     exename = "eurotrucks2.exe" if args.ets2 else "amtrucks.exe"
-    printdbg("Adding DLL override setting for {}".format(exename))
+    logging.debug("Adding DLL override setting for {}".format(exename))
     subproc.call(
       [wine, "reg", "add",
        "HKCU\\Software\\Wine\\AppDefaults\\{}\\DllOverrides".format(exename),
@@ -222,11 +215,11 @@ def start_with_proton():
         subproc.check_call(
           ["pgrep", "-u", getuser(), "-x", "steam"], stdout=subproc.DEVNULL)
     except Exception:
-        printdbg("Starting Steam…")
+        logging.debug("Starting Steam…")
         subproc.Popen(["nohup", "steam"], stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
         waittime = 99
         while waittime > 0:
-            printdbg(ngettext(
+            print(ngettext(
               "\rWaiting {} second for steam to start up. ",
               "\rWaiting {} seconds for steam to start up. ",
               waittime).format(waittime), end="")
@@ -236,8 +229,9 @@ def start_with_proton():
                 try:
                     st = os.stat(path)
                     if st.st_mtime > loginusers_timestamps[i]:
-                        printdbg(
-                          "\rSteam should now be up and running and the user logged in.")
+                        print("\r{}".format(" " * 70))  # clear "Waiting..." line
+                        logging.debug(
+                          "Steam should now be up and running and the user logged in.")
                         steamdir = os.path.dirname(
                           os.path.dirname(File.loginusers_paths[i]))
                         break
@@ -248,23 +242,24 @@ def start_with_proton():
             break
         else:
             # waited 99 seconds without detecting timestamp change
-            printdbg("\nSteam should be up now.")
+            print("\r{}".format(" " * 70))
+            logging.debug("Steam should be up now.")
             # could not detect steam installation directory
             # fallback to $XDG_DATA_HOME/Steam
             steamdir = os.path.join(Dir.XDG_DATA_HOME, "Steam")
     else:
         # Steam is running
         # detect most recently updated "loginusers.vdf" file
-        printdbg("Steam is running")
+        logging.debug("Steam is running")
         max_mtime = max(loginusers_timestamps)
         for i, path in enumerate(File.loginusers_paths):
             if loginusers_timestamps[i] == max_mtime:
                 steamdir = os.path.dirname(os.path.dirname(File.loginusers_paths[i]))
                 break
-    printdbg("Steam installation directory:", steamdir)
+    logging.info("Steam installation directory: " + steamdir)
 
     if not os.path.isdir(args.prefixdir):
-        printdbg("Creating directory {}".format(args.prefixdir))
+        logging.debug("Creating directory {}".format(args.prefixdir))
     os.makedirs(args.prefixdir, exist_ok=True)
 
     # activate native d3dcompiler_47
@@ -300,7 +295,7 @@ def start_with_proton():
     else:
         for arg in (File.inject_exe, args.gamedir, args.moddir):
             argv.append(arg)
-    printdbg("""Startup command:
+    logging.info("""Startup command:
   SteamGameId={}
   SteamAppId={}
   STEAM_COMPAT_DATA_PATH={}
@@ -316,7 +311,11 @@ def start_with_proton():
       env["PROTON_NO_D3D11"],
       ld_preload,
       sys.executable, proton, argv[-3], argv[-2], argv[-1]))
-    subproc.call(argv, env=env)
+    try:
+        output = subproc.check_output(argv, env=env, stderr=subproc.STDOUT)
+        logging.info("Proton output:\n" + output.decode("utf-8"))
+    except subproc.CalledProcessError as e:
+        logging.error("Proton output:\n" + e.output.decode("utf-8"))
 
 
 def start_with_wine():
@@ -348,14 +347,18 @@ def start_with_wine():
     else:
         for arg in (File.inject_exe, args.gamedir, args.moddir):
             argv.append(arg)
-    printdbg("""Startup command:
+    logging.info("""Startup command:
   WINEDEBUG=-all
   WINEARCH=win64
   WINEPREFIX={}
   WINEDLLOVERRIDES="{}"
   wine {} {} {}""".format(
       env["WINEPREFIX"], env["WINEDLLOVERRIDES"], argv[-3], argv[-2], argv[-1]))
-    subproc.call(argv, env=env)
+    try:
+        output = subproc.check_output(argv, env=env, stderr=subproc.STDOUT)
+        logging.info("Wine output:\n" + output.decode("utf-8"))
+    except subproc.CalledProcessError as e:
+        logging.error("Wine output:\n" + e.output.decode("utf-8"))
 
 
 # download missing or outdated files
@@ -366,18 +369,19 @@ def update_mod():
           ["git", "-C", Dir.scriptdir,
            "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
         if out == b"origin/master\n":
-            printdbg("This script is checked out with git, upstream is origin/master")
-            printdbg("Running git pull")
+            logging.debug(
+              "This script is checked out with git, upstream is origin/master")
+            logging.debug("Running git pull")
             subproc.check_call(
               ["git", "-C", Dir.scriptdir, "pull"],
               stdout=subproc.DEVNULL, stderr=subproc.STDOUT)
         else:
             raise Exception
     except Exception:
-        printdbg("Better not to do self update")
+        logging.debug("Better not to do self update")
 
     if not os.path.isdir(args.moddir):
-        printdbg("Creating directory {}".format(args.moddir))
+        logging.debug("Creating directory {}".format(args.moddir))
         os.makedirs(args.moddir, exist_ok=True)
 
     # get the fileinfo from the server
@@ -419,11 +423,12 @@ Please report an issue: {}""".format(e, URL.issueurl))
             except Exception as e:
                 sys.exit("Failed to read {}: {}".format(modfilepath, e))
     if len(dlfiles) > 0:
-        printdbg("Files to download:")
+        message_dlfiles = "Files to download:\n"
         for path, _, _ in dlfiles:
-            printdbg("  {}".format(path))
+            message_dlfiles += "  {}\n".format(path)
+        logging.info(message_dlfiles.rstrip())
     else:
-        printdbg("No files to download")
+        logging.debug("No files to download")
 
     # download missing/wrong files
     if not download_files(URL.dlurl, dlfiles):
@@ -436,11 +441,11 @@ def update_game():
     # make sure steam is closed before updating
     # it's possible to update with the steam client open but the client looses
     # all connectivity and asks for password and steam guard code after restart
-    printdbg("Closing Steam")
+    logging.debug("Closing Steam")
     subproc.call(["steam", "-shutdown"])
 
     if not os.path.isdir(args.gamedir):
-        printdbg("Creating directory {}".format(args.gamedir))
+        logging.debug("Creating directory {}".format(args.gamedir))
         os.makedirs(args.gamedir, exist_ok=True)
 
     # fetch steamcmd if not in our data directory
@@ -448,7 +453,7 @@ def update_game():
     # see https://github.com/lhark/truckersmp-cli/issues/43
     steamcmd = os.path.join(Dir.steamcmddir, "steamcmd.sh")
     if not os.path.isfile(steamcmd):
-        printdbg("Downloading steamcmd")
+        logging.debug("Downloading steamcmd")
         os.makedirs(Dir.steamcmddir, exist_ok=True)
         try:
             with urllib.request.urlopen(URL.steamcmdurl) as f:
@@ -457,17 +462,17 @@ def update_game():
             sys.exit("Failed to download steamcmd: {}".format(e))
         with tarfile.open(fileobj=io.BytesIO(steamcmd_targz), mode="r:gz") as f:
             f.extractall(Dir.steamcmddir)
-    printdbg("Steamcmd:", steamcmd)
+    logging.info("Steamcmd: " + steamcmd)
 
     # download/update Proton
     if args.proton:
-        printdbg("Updating Proton (AppId:{})".format(args.proton_appid))
+        logging.debug("Updating Proton (AppId:{})".format(args.proton_appid))
 
         if not os.path.isdir(args.protondir):
-            printdbg("Creating directory {}".format(args.protondir))
+            logging.debug("Creating directory {}".format(args.protondir))
             os.makedirs(args.protondir, exist_ok=True)
 
-        printdbg("""Command:
+        logging.info("""Command:
   {}
     +login {}
     +force_install_dir {}
@@ -481,8 +486,8 @@ def update_game():
            "+quit"])
 
     # use steamcmd to update the chosen game
-    printdbg("Updating Game (AppId:{})".format(args.steamid))
-    printdbg("""Command:
+    logging.debug("Updating Game (AppId:{})".format(args.steamid))
+    logging.info("""Command:
   {}
     +@sSteamCmdForcePlatformType windows
     +login {}
@@ -537,7 +542,7 @@ def check_args_errors():
         if args.wine:
             if (args.prefixdir == Dir.default_prefixdir["ats"]
                or args.prefixdir == Dir.default_prefixdir["ets2"]):
-                printdbg("""prefixdir is the default while using wine,
+                logging.debug("""prefixdir is the default while using wine,
 make sure it uses the same folder as proton""")
                 args.prefixdir = os.path.join(args.prefixdir, "pfx")
 
@@ -560,12 +565,12 @@ Need to download (-u) Proton?""".format(args.protondir))
     if args.update and not args.account:
         sys.exit("Need the steam account name (-n name) to update.")
 
-    # debug
-    printdbg("AppId/GameId:", args.steamid)
-    printdbg("Game directory:", args.gamedir)
-    printdbg("Prefix:", args.prefixdir)
+    # info
+    logging.info("AppId/GameId: {} ({})".format(args.steamid, game))
+    logging.info("Game directory: " + args.gamedir)
+    logging.info("Prefix: " + args.prefixdir)
     if args.proton:
-        printdbg("Proton directory:", args.protondir)
+        logging.info("Proton directory: " + args.protondir)
 
 
 def create_arg_parser():
@@ -610,7 +615,8 @@ if you want to use a lower version than 4.2."""
       help="update the game", action="store_true")
     ap.add_argument(
       "-v", "--verbose",
-      help="verbose", action="store_true")
+      help="verbose output (none:error, once:info, twice or more:debug)",
+      action="count")
     ap.add_argument(
       "-g", "--gamedir", metavar="DIR", type=str,
       help="""choose a different directory for the game files
@@ -636,6 +642,14 @@ if you want to use a lower version than 4.2."""
               [Default: $XDG_DATA_HOME/truckersmp-cli/Proton]
               While updating any previous version in this folder gets changed
               to the given (-i) or default Proton version""")
+    ap.add_argument(
+      "-l", "--logfile", metavar="LOG", type=str,
+      default="",
+      help="""write log into LOG, "-vv" option is recommended
+              [Default: Empty string (only stderr)]
+              Note: Messages from Steam/steamcmd won't be written,
+              only from this script (Game logs are written into
+              "My Documents/{ETS2,ATS}MP/logs/client_*.log")""")
     ap.add_argument(
       "-x", "--prefixdir", metavar="DIR", type=str,
       help="""choose a different directory for the prefix
@@ -679,37 +693,48 @@ if __name__ == "__main__":
     arg_parser = create_arg_parser()
     args = arg_parser.parse_args()
 
+    # initialize logging
+    formatter = logging.Formatter("** {levelname} **  {message}", style="{")
+    stderr_handler = logging.StreamHandler()
+    stderr_handler.setFormatter(formatter)
+    logger = logging.getLogger()
+    if args.verbose:
+        logger.setLevel(logging.INFO if args.verbose == 1 else logging.DEBUG)
+    logger.addHandler(stderr_handler)
+    if args.logfile != "":
+        file_handler = logging.FileHandler(args.logfile, mode="w")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
     # fallback to old local folder
     if not args.moddir:
         if os.path.isdir(os.path.join(Dir.scriptdir, "truckersmp")):
-            printdbg("No moddir set and fallback found")
+            logging.debug("No moddir set and fallback found")
             args.moddir = os.path.join(Dir.scriptdir, "truckersmp")
         else:
-            printdbg("No moddir set, setting to default")
+            logging.debug("No moddir set, setting to default")
             args.moddir = Dir.default_moddir
-    printdbg("Mod directory:", args.moddir)
+    logging.info("Mod directory: " + args.moddir)
 
     # check for errors
     check_args_errors()
 
     # download/update ATS/ETS2 and Proton
     if args.update:
-        printdbg("Updating game files")
+        logging.debug("Updating game files")
         update_game()
 
     # update truckersmp when starting multiplayer
     if not args.singleplayer:
-        printdbg("Updating mod files")
+        logging.debug("Updating mod files")
         update_mod()
 
     # start truckersmp with proton or wine
     if args.start:
-        printdbg("Starting game with ", end="")
-        if args.proton:
-            printdbg("Proton")
-            start_with_proton()
-        elif args.wine:
-            printdbg("Wine")
-            start_with_wine()
+        start_functions = (("Proton", start_with_proton), ("Wine", start_with_wine))
+        i = 0 if args.proton else 1
+        compat_tool, start_game = start_functions[i]
+        logging.debug("Starting game with {}".format(compat_tool))
+        start_game()
 
     sys.exit()

@@ -30,12 +30,13 @@ Short option|Long option|Description
 `-h`|`--help`|Show help
 `-s`|`--start`|Start the game
 `-u`|`--update`|Update the game
-`-v`|`--verbose`|Verbose
+`-v`|`--verbose`|Verbose output (none:error, once:info, twice or more:debug)
 `-g DIR`|`--gamedir DIR`|Choose a different directory for the game files [Default: `$XDG_DATA_HOME/truckersmp-cli/(Game name)/data`]
 `-i APPID`|`--proton-appid APPID`|Choose a different AppId for Proton (Needs an update for changes)
 `-m DIR`|`--moddir DIR`|Choose a different directory for the mod files [Default: `$XDG_DATA_HOME/truckersmp-cli/TruckersMP`, Fallback: `./truckersmp`]
 `-n NAME`|`--account NAME`|Steam account name to use
 `-o DIR`|`--protondir DIR`|Choose a different Proton directory [Default: $XDG_DATA_HOME/truckersmp-cli/Proton]
+`-l LOG`|`--logfile LOG`|Write log into LOG, `-vv` option is recommended [Default: Empty string (only stderr)] Note: Messages from Steam/steamcmd won't be written, only from this script (Game logs are written into `My Documents/{ETS2,ATS}MP/logs/client_*.log`)
 `-x DIR`|`--prefixdir DIR`|Choose a different directory for the prefix [Default: `$XDG_DATA_HOME/truckersmp-cli/(Game name)/prefix`]
 `-c`|`--activate-native-d3dcompiler-47`|Activate native 64-bit `d3dcompiler_47.dll` when starting (Needed for D3D11 renderer)
 (Not available)|`--use-wined3d`|Use OpenGL-based D3D11 instead of DXVK when using Proton
