@@ -83,6 +83,8 @@ class File:
 
 
 def download_files(host, files_to_download):
+    file_count = 1
+    num_of_files = len(files_to_download)
     conn = http.client.HTTPSConnection(host)
     try:
         while len(files_to_download) > 0:
@@ -91,6 +93,7 @@ def download_files(host, files_to_download):
             bufsize = md5hash.block_size * 256
             name = os.path.basename(path)
             destdir = os.path.dirname(dest)
+            name_getting = "[{}/{}] Get: {}".format(file_count, num_of_files, name)
             logging.debug(
               "Downloading file https://{}{} to {}".format(host, path, destdir))
 
@@ -122,7 +125,7 @@ def download_files(host, files_to_download):
                         progress = "{:,} / {:,}".format(downloaded, int(content_len))
                     else:
                         progress = "{:,}".format(downloaded)
-                    print("\r{:40}{:>40}".format(name, progress), end="")
+                    print("\r{:40}{:>40}".format(name_getting, progress), end="")
 
             if md5hash.hexdigest() != md5:
                 print("\r{:40}{:>40}".format(name, "MD5 MISMATCH"))
@@ -144,6 +147,8 @@ def download_files(host, files_to_download):
             # skip already downloaded files
             # when trying to download from URL.dlurlalt
             del files_to_download[0]
+
+            file_count += 1
     except Exception as e:
         logging.error("Failed to download https://{}{}: {}".format(host, path, e))
         return False
