@@ -393,6 +393,34 @@ def perform_self_update():
     logging.info("Self update complete")
 
 
+def run_game(argv, env, env_print):
+    """
+    Run game with given command line and environment variables.
+
+    argv: A list of command line to start game
+    env: A dict of environment variables
+    env_print: A list of environment variable names to print for logging
+    """
+    runner = "Proton" if Args.proton else "Wine"
+    env_str = ""
+    for i, var in enumerate(env_print):
+        if i != 0:
+            env_str += "\n  "
+        env_str += "{}={}".format(var, env[var])
+    env_str += "\n  "
+    cmd_str = ""
+    for i, arg in enumerate(argv):
+        if i != 0:
+            cmd_str += "\n    "
+        cmd_str += arg
+    logging.info("Running %s:\n  %s%s", runner, env_str, cmd_str)
+    try:
+        output = subproc.check_output(argv, env=env, stderr=subproc.STDOUT)
+        logging.info("%s output:\n%s", runner, output.decode("utf-8"))
+    except subproc.CalledProcessError as ex:
+        logging.error("%s output:\n%s", runner, ex.output.decode("utf-8"))
+
+
 def start_wine_discord_ipc_bridge(runner, env):
     """
     Check/download/run wine-discord-ipc-bridge.

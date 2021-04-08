@@ -54,6 +54,10 @@ def check_args_errors():
     elif Args.game == "ats":
         Args.ats = Args.singleplayer = True
 
+    # default game options
+    if len(Args.game_options) == 0:
+        Args.game_options = ["-nointro", "-64bit"]
+
     # "--downgrade" implies "--update"
     if Args.downgrade:
         Args.update = True
@@ -338,5 +342,6 @@ SteamCMD can use your saved credentials for convenience.
         choices=("ets2mp", "ets2", "ats", "atsmp", "none"),
         default="none",
         nargs="?")
+    parser.add_argument("game_options", nargs="*")
 
     return parser

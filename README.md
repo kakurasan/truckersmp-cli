@@ -56,8 +56,24 @@ You can get the latest pre-built release from [the release page][github:release-
 
 ## Syntax
 
+### Without specifying game options
+
+Our default options (`-nointro` and `-64bit`) are passed to ATS/ETS2.
+
 ```
 $ truckersmp-cli (options...) [action] [game name]
+```
+
+### With specifying game options
+
+```
+$ truckersmp-cli (options...) [action] [game name] -- [game options...]
+```
+
+or
+
+```
+$ truckersmp-cli (options...) -- [action] [game name] [game options...]
 ```
 
 ### Actions
@@ -187,6 +203,12 @@ $ truckersmp-cli update ets2mp
 
 ```
 $ truckersmp-cli start atsmp
+```
+
+#### Start ETS2MP using custom launch options, with verbose output
+
+```
+$ truckersmp-cli -v start ets2mp -- -nointro -64bit -sysmouse
 ```
 
 #### How to downgrade games

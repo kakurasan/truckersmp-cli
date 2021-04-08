@@ -16,7 +16,7 @@ from .steamcmd import update_game
 from .truckersmp import update_mod
 from .utils import (
     activate_native_d3dcompiler_47, check_libsdl2,
-    perform_self_update, set_wine_desktop_registry,
+    perform_self_update, run_game, set_wine_desktop_registry,
     start_wine_discord_ipc_bridge, wait_for_steam,
 )
 from .variables import AppId, Args, Dir, File, URL
@@ -216,15 +216,12 @@ def start_with_proton():
     env["PROTON_USE_WINED3D"] = "1" if Args.use_wined3d else "0"
     env["PROTON_NO_D3D11"] = "1" if not Args.enable_d3d11 else "0"
     # enable Steam Overlay unless "--disable-proton-overlay" is specified
-    if Args.disable_proton_overlay:
-        ld_preload = ""
-    else:
+    if not Args.disable_proton_overlay:
         overlayrenderer = os.path.join(steamdir, File.overlayrenderer_inner)
         if "LD_PRELOAD" in env:
             env["LD_PRELOAD"] += ":" + overlayrenderer
         else:
             env["LD_PRELOAD"] = overlayrenderer
-        ld_preload = "LD_PRELOAD={}\n  ".format(env["LD_PRELOAD"])
 
     # start wine-discord-ipc-bridge for multiplayer
     # unless "--without-wine-discord-ipc-bridge" is specified
@@ -236,34 +233,25 @@ def start_with_proton():
     if Args.singleplayer:
         exename = "eurotrucks2.exe" if Args.ets2 else "amtrucks.exe"
         gamepath = os.path.join(Args.gamedir, "bin/win_x64", exename)
-        argv += gamepath, "-nointro", "-64bit"
+        argv.append(gamepath)
     else:
         argv += File.inject_exe, Args.gamedir, Args.moddir
 
+    # game options
+    argv += Args.game_options
+
     env["SteamGameId"] = Args.steamid
     env["SteamAppId"] = Args.steamid
-    logging.info(
-        """Startup command:
-  SteamGameId=%s
-  SteamAppId=%s
-  STEAM_COMPAT_DATA_PATH=%s
-  STEAM_COMPAT_CLIENT_INSTALL_PATH=%s
-  PROTON_USE_WINED3D=%s
-  PROTON_NO_D3D11=%s
-  %s%s %s
-  run
-  %s %s %s""",
-        env["SteamGameId"], env["SteamAppId"],
-        env["STEAM_COMPAT_DATA_PATH"], env["STEAM_COMPAT_CLIENT_INSTALL_PATH"],
-        env["PROTON_USE_WINED3D"],
-        env["PROTON_NO_D3D11"],
-        ld_preload,
-        sys.executable, proton, argv[-3], argv[-2], argv[-1])
-    try:
-        output = subproc.check_output(argv, env=env, stderr=subproc.STDOUT)
-        logging.info("Proton output:\n%s", output.decode("utf-8"))
-    except subproc.CalledProcessError as ex:
-        logging.error("Proton output:\n%s", ex.output.decode("utf-8"))
+    env_print = ["SteamAppId", "SteamGameId"]
+    if "LD_PRELOAD" in env:
+        env_print.append("LD_PRELOAD")
+    env_print += [
+        "PROTON_NO_D3D11",
+        "PROTON_USE_WINED3D",
+        "STEAM_COMPAT_CLIENT_INSTALL_PATH",
+        "STEAM_COMPAT_DATA_PATH",
+    ]
+    run_game(argv, env, env_print)
 
     if ipcbr_proc:
         # make sure wine-discord-ipc-bridge is exited
@@ -305,30 +293,18 @@ def start_with_wine():
     if not Args.enable_d3d11:
         env["WINEDLLOVERRIDES"] += ";d3d11=;dxgi="
 
-    desktop_args = ""
     if Args.wine_desktop:
         argv += "explorer", "/desktop=TruckersMP,{}".format(Args.wine_desktop)
-        desktop_args += argv[1] + " " + argv[2] + " "
     if Args.singleplayer:
         exename = "eurotrucks2.exe" if Args.ets2 else "amtrucks.exe"
         gamepath = os.path.join(Args.gamedir, "bin/win_x64", exename)
-        argv += gamepath, "-nointro", "-64bit"
+        argv.append(gamepath)
     else:
         argv += File.inject_exe, Args.gamedir, Args.moddir
-    logging.info(
-        """Startup command:
-  WINEDEBUG=-all
-  WINEARCH=win64
-  WINEPREFIX=%s
-  WINEDLLOVERRIDES="%s"
-  %s %s%s %s %s""",
-        env["WINEPREFIX"], env["WINEDLLOVERRIDES"],
-        wine, desktop_args, argv[-3], argv[-2], argv[-1])
-    try:
-        output = subproc.check_output(argv, env=env, stderr=subproc.STDOUT)
-        logging.info("Wine output:\n%s", output.decode("utf-8"))
-    except subproc.CalledProcessError as ex:
-        logging.error("Wine output:\n%s", ex.output.decode("utf-8"))
+
+    argv += Args.game_options
+
+    run_game(argv, env, ("WINEARCH", "WINEDEBUG", "WINEDLLOVERRIDES", "WINEPREFIX"))
 
     if ipcbr_proc:
         if ipcbr_proc.poll() is None:
