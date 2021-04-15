@@ -15,7 +15,7 @@ from .args import check_args_errors, create_arg_parser
 from .steamcmd import update_game
 from .truckersmp import update_mod
 from .utils import (
-    activate_native_d3dcompiler_47, check_libsdl2,
+    activate_native_d3dcompiler_47, check_libsdl2, get_reordered_argv,
     perform_self_update, run_game, set_wine_desktop_registry,
     start_wine_discord_ipc_bridge, wait_for_steam,
 )
@@ -80,7 +80,7 @@ def main():
 
     # parse options
     arg_parser = create_arg_parser()
-    arg_parser.parse_args(namespace=Args)
+    arg_parser.parse_args(args=get_reordered_argv(), namespace=Args)
 
     # print version
     if Args.version:

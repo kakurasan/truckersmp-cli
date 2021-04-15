@@ -393,6 +393,32 @@ def perform_self_update():
     logging.info("Self update complete")
 
 
+def get_reordered_argv():
+    """
+    Reorder options and arguments.
+
+    "argparse" module doesn't support the following syntax:
+    "truckersmp-cli [action] [game] [our options...] -- [game options...]"
+
+    This function reorders given command line options and arguments
+    to the supported order and returns the reordered list.
+
+    e.g. "truckersmp-cli start ets2mp -v -- -nointro -64bit -sysmouse"
+      -> "truckersmp-cli -v start ets2mp -- -nointro -64bit -sysmouse"
+    """
+    options = []
+    arguments = []
+    for i, arg in enumerate(sys.argv[1:]):
+        if arg == "--":
+            arguments += sys.argv[i + 1:]
+            break
+        if arg.startswith("-"):
+            options.append(arg)
+        else:
+            arguments.append(arg)
+    return options + arguments
+
+
 def run_game(argv, env, env_print):
     """
     Run game with given command line and environment variables.
